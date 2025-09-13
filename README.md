@@ -1,3 +1,3 @@
 $$
-\Delta\,V
+\Delta V
 $$
