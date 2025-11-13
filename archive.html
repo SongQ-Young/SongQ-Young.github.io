@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SongQ-Young 的文章归档">
+    <title>文章归档 - SongQ-Young 的博客</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <div id="particles-js"></div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">SongQ-Young</a>
+
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">首页</a></li>
+                <li><a href="projects.html" class="nav-link">项目</a></li>
+                <li><a href="archive.html" class="nav-link active">归档</a></li>
+                <li><a href="about.html" class="nav-link">关于</a></li>
+                <li><button id="theme-toggle" class="theme-toggle">🌙 深色</button></li>
+            </ul>
+
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <!-- 页面标题 -->
+    <section class="hero">
+        <div class="container">
+            <h1>📚 文章归档</h1>
+            <p>按时间线浏览所有文章</p>
+        </div>
+    </section>
+
+    <!-- 主内容区 -->
+    <div class="container">
+        <!-- 统计信息 -->
+        <section class="section">
+            <h2>📊 统计信息</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; text-align: center;">
+                <div>
+                    <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;">25</div>
+                    <div style="color: var(--text-secondary);">文章总数</div>
+                </div>
+                <div>
+                    <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;">8</div>
+                    <div style="color: var(--text-secondary);">标签数量</div>
+                </div>
+                <div>
+                    <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;">1.2k</div>
+                    <div style="color: var(--text-secondary);">总访问量</div>
+                </div>
+                <div>
+                    <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;">3</div>
+                    <div style="color: var(--text-secondary);">月更新频率</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 时间线 -->
+        <section class="section">
+            <h2>⏰ 文章时间线</h2>
+
+            <!-- 2024年11月 -->
+            <div style="margin-bottom: 3rem;">
+                <h3 style="color: var(--primary-color); font-size: 1.5rem; margin-bottom: 1.5rem; padding-left: 2rem;">
+                    📅 2024年11月
+                </h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">11月13日</div>
+                        <div class="timeline-content">
+                            <h3><a href="#">如何搭建个人博客</a></h3>
+                            <p>使用 GitHub Pages 搭建简洁美观的个人博客，记录你的技术成长之路。</p>
+                            <div class="tags" style="margin-top: 0.75rem;">
+                                <span class="tag">GitHub Pages</span>
+                                <span class="tag">博客</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">11月10日</div>
+                        <div class="timeline-content">
+                            <h3><a href="#">JavaScript 异步编程深入理解</a></h3>
+                            <p>深入探讨 JavaScript 中的异步编程模式，包括 Promise、async/await 等。</p>
+                            <div class="tags" style="margin-top: 0.75rem;">
+                                <span class="tag">JavaScript</span>
+                                <span class="tag">异步编程</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">11月05日</div>
+                        <div class="timeline-content">
+                            <h3><a href="#">算法学习笔记：动态规划</a></h3>
+                            <p>系统学习动态规划算法，通过经典题目掌握解题思路和技巧。</p>
+                            <div class="tags" style="margin-top: 0.75rem;">
+                                <span class="tag">算法</span>
+                                <span class="tag">动态规划</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">11月01日</div>
+                        <div class="timeline-content">
+                            <h3><a href="#">React Hooks 实战指南</a></h3>
+                            <p>深入理解 React Hooks 的使用方法和最佳实践。</p>
+                            <div class="tags" style="margin-top: 0.75rem;">
+                                <span class="tag">React</span>
+                                <span class="tag">JavaScript</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2024年10月 -->
+            <div style="margin-bottom: 3rem;">
+                <h3 style="color: var(--primary-color); font-size: 1.5rem; margin-bottom: 1.5rem; padding-left: 2rem;">
+                    📅 2024年10月
+                </h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">10月28日</div>
+                        <div class="timeline-content">
+                            <h3><a href="#">前端性能优化实践</a></h3>
+                            <p>分享前端性能优化的实用技巧，包括代码分割、懒加载、缓存策略等。</p>
+                            <div class="tags" style="margin-top: 0.75rem;">
+                                <span class="tag">前端</span>
+                                <span class="tag">性能优化</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">10月20日</div>
+                        <div class="timeline-content">
+                            <h3><a href="#">CSS Grid 布局完全指南</a></h3>
+                            <p>全面介绍 CSS Grid 布局系统，从基础到高级应用。</p>
+                            <div class="tags" style="margin-top: 0.75rem;">
+                                <span class="tag">CSS</span>
+                                <span class="tag">前端</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">10月15日</div>
+                        <div class="timeline-content">
+                            <h3><a href="#">TypeScript 入门到实战</a></h3>
+                            <p>从基础类型到高级特性，系统学习 TypeScript。</p>
+                            <div class="tags" style="margin-top: 0.75rem;">
+                                <span class="tag">TypeScript</span>
+                                <span class="tag">JavaScript</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">10月08日</div>
+                        <div class="timeline-content">
+                            <h3><a href="#">Node.js 开发最佳实践</a></h3>
+                            <p>分享 Node.js 后端开发的经验和最佳实践。</p>
+                            <div class="tags" style="margin-top: 0.75rem;">
+                                <span class="tag">Node.js</span>
+                                <span class="tag">后端</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">10月01日</div>
+                        <div class="timeline-content">
+                            <h3><a href="#">Git 工作流最佳实践</a></h3>
+                            <p>详解 Git 分支管理、代码审查和团队协作流程。</p>
+                            <div class="tags" style="margin-top: 0.75rem;">
+                                <span class="tag">Git</span>
+                                <span class="tag">工具</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2024年9月 -->
+            <div style="margin-bottom: 3rem;">
+                <h3 style="color: var(--primary-color); font-size: 1.5rem; margin-bottom: 1.5rem; padding-left: 2rem;">
+                    📅 2024年9月
+                </h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">9月25日</div>
+                        <div class="timeline-content">
+                            <h3><a href="#">设计模式在前端的应用</a></h3>
+                            <p>介绍常用设计模式在前端开发中的实际应用。</p>
+                            <div class="tags" style="margin-top: 0.75rem;">
+                                <span class="tag">设计模式</span>
+                                <span class="tag">JavaScript</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">9月18日</div>
+                        <div class="timeline-content">
+                            <h3><a href="#">Webpack 配置完全指南</a></h3>
+                            <p>深入理解 Webpack 配置和优化技巧。</p>
+                            <div class="tags" style="margin-top: 0.75rem;">
+                                <span class="tag">Webpack</span>
+                                <span class="tag">构建工具</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">9月10日</div>
+                        <div class="timeline-content">
+                            <h3><a href="#">RESTful API 设计规范</a></h3>
+                            <p>分享 RESTful API 的设计原则和最佳实践。</p>
+                            <div class="tags" style="margin-top: 0.75rem;">
+                                <span class="tag">API</span>
+                                <span class="tag">后端</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-date">9月05日</div>
+                        <div class="timeline-content">
+                            <h3><a href="#">数据结构与算法：链表</a></h3>
+                            <p>深入理解链表数据结构及其常见应用。</p>
+                            <div class="tags" style="margin-top: 0.75rem;">
+                                <span class="tag">算法</span>
+                                <span class="tag">数据结构</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 标签云 -->
+        <section class="section">
+            <h2>🏷️ 标签云</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem;">
+                <a href="#" class="tag" style="font-size: 1.2rem;">JavaScript (8)</a>
+                <a href="#" class="tag" style="font-size: 1rem;">前端 (6)</a>
+                <a href="#" class="tag" style="font-size: 1.1rem;">算法 (4)</a>
+                <a href="#" class="tag" style="font-size: 0.9rem;">React (3)</a>
+                <a href="#" class="tag" style="font-size: 0.9rem;">TypeScript (2)</a>
+                <a href="#" class="tag" style="font-size: 0.85rem;">Node.js (2)</a>
+                <a href="#" class="tag" style="font-size: 0.85rem;">CSS (2)</a>
+                <a href="#" class="tag" style="font-size: 0.8rem;">Git (1)</a>
+                <a href="#" class="tag" style="font-size: 0.8rem;">Webpack (1)</a>
+                <a href="#" class="tag" style="font-size: 0.8rem;">API (1)</a>
+                <a href="#" class="tag" style="font-size: 0.8rem;">GitHub Pages (1)</a>
+            </div>
+        </section>
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <p>&copy; 2024 SongQ-Young. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://github.com/SongQ-Young" target="_blank">GitHub</a>
+            <a href="rss.xml">RSS</a>
+            <a href="#">隐私政策</a>
+            <a href="#">使用条款</a>
+        </div>
+        <p style="margin-top: 1rem;">Powered by GitHub Pages ❤️</p>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="back-to-top">↑</button>
+
+    <!-- JavaScript -->
+    <script src="js/main.js"></script>
+</body>
+</html>

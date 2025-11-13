@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>SongQ-Young 的博客</title>
+    <link>https://SongQ-Young.github.io</link>
+    <description>探索技术，分享知识，记录成长</description>
+    <language>zh-CN</language>
+    <lastBuildDate>Wed, 13 Nov 2024 00:00:00 GMT</lastBuildDate>
+    <atom:link href="https://SongQ-Young.github.io/rss.xml" rel="self" type="application/rss+xml"/>
+
+    <!-- 文章 1 -->
+    <item>
+      <title>如何搭建个人博客</title>
+      <link>https://SongQ-Young.github.io/posts/how-to-build-blog.html</link>
+      <description>使用 GitHub Pages 搭建简洁美观的个人博客，记录你的技术成长之路。本文将详细介绍从零开始搭建个人博客的完整流程。</description>
+      <pubDate>Wed, 13 Nov 2024 00:00:00 GMT</pubDate>
+      <guid>https://SongQ-Young.github.io/posts/how-to-build-blog.html</guid>
+      <category>GitHub Pages</category>
+      <category>博客</category>
+      <category>前端</category>
+    </item>
+
+    <!-- 文章 2 -->
+    <item>
+      <title>JavaScript 异步编程深入理解</title>
+      <link>https://SongQ-Young.github.io/posts/javascript-async.html</link>
+      <description>深入探讨 JavaScript 中的异步编程模式，包括 Promise、async/await 等。通过实例代码理解异步编程的核心概念。</description>
+      <pubDate>Sun, 10 Nov 2024 00:00:00 GMT</pubDate>
+      <guid>https://SongQ-Young.github.io/posts/javascript-async.html</guid>
+      <category>JavaScript</category>
+      <category>异步编程</category>
+      <category>前端</category>
+    </item>
+
+    <!-- 文章 3 -->
+    <item>
+      <title>算法学习笔记：动态规划</title>
+      <link>https://SongQ-Young.github.io/posts/algorithm-dp.html</link>
+      <description>系统学习动态规划算法，通过经典题目掌握解题思路和技巧。包括背包问题、最长公共子序列等经典问题。</description>
+      <pubDate>Tue, 05 Nov 2024 00:00:00 GMT</pubDate>
+      <guid>https://SongQ-Young.github.io/posts/algorithm-dp.html</guid>
+      <category>算法</category>
+      <category>动态规划</category>
+    </item>
+
+    <!-- 文章 4 -->
+    <item>
+      <title>React Hooks 实战指南</title>
+      <link>https://SongQ-Young.github.io/posts/react-hooks-guide.html</link>
+      <description>深入理解 React Hooks 的使用方法和最佳实践，包括 useState、useEffect、useContext 等常用 Hooks。</description>
+      <pubDate>Fri, 01 Nov 2024 00:00:00 GMT</pubDate>
+      <guid>https://SongQ-Young.github.io/posts/react-hooks-guide.html</guid>
+      <category>React</category>
+      <category>JavaScript</category>
+      <category>前端</category>
+    </item>
+
+    <!-- 文章 5 -->
+    <item>
+      <title>前端性能优化实践</title>
+      <link>https://SongQ-Young.github.io/posts/frontend-performance.html</link>
+      <description>分享前端性能优化的实用技巧，包括代码分割、懒加载、缓存策略等，让你的网站飞起来。</description>
+      <pubDate>Mon, 28 Oct 2024 00:00:00 GMT</pubDate>
+      <guid>https://SongQ-Young.github.io/posts/frontend-performance.html</guid>
+      <category>前端</category>
+      <category>性能优化</category>
+      <category>JavaScript</category>
+    </item>
+
+    <!-- 文章 6 -->
+    <item>
+      <title>CSS Grid 布局完全指南</title>
+      <link>https://SongQ-Young.github.io/posts/css-grid-guide.html</link>
+      <description>全面介绍 CSS Grid 布局系统，从基础到高级应用。</description>
+      <pubDate>Sun, 20 Oct 2024 00:00:00 GMT</pubDate>
+      <guid>https://SongQ-Young.github.io/posts/css-grid-guide.html</guid>
+      <category>CSS</category>
+      <category>前端</category>
+    </item>
+
+    <!-- 文章 7 -->
+    <item>
+      <title>TypeScript 入门到实战</title>
+      <link>https://SongQ-Young.github.io/posts/typescript-guide.html</link>
+      <description>从基础类型到高级特性，系统学习 TypeScript。</description>
+      <pubDate>Tue, 15 Oct 2024 00:00:00 GMT</pubDate>
+      <guid>https://SongQ-Young.github.io/posts/typescript-guide.html</guid>
+      <category>TypeScript</category>
+      <category>JavaScript</category>
+    </item>
+
+    <!-- 文章 8 -->
+    <item>
+      <title>Node.js 开发最佳实践</title>
+      <link>https://SongQ-Young.github.io/posts/nodejs-best-practices.html</link>
+      <description>分享 Node.js 后端开发的经验和最佳实践。</description>
+      <pubDate>Tue, 08 Oct 2024 00:00:00 GMT</pubDate>
+      <guid>https://SongQ-Young.github.io/posts/nodejs-best-practices.html</guid>
+      <category>Node.js</category>
+      <category>后端</category>
+    </item>
+
+    <!-- 文章 9 -->
+    <item>
+      <title>Git 工作流最佳实践</title>
+      <link>https://SongQ-Young.github.io/posts/git-workflow.html</link>
+      <description>详解 Git 分支管理、代码审查和团队协作流程。</description>
+      <pubDate>Tue, 01 Oct 2024 00:00:00 GMT</pubDate>
+      <guid>https://SongQ-Young.github.io/posts/git-workflow.html</guid>
+      <category>Git</category>
+      <category>工具</category>
+    </item>
+
+    <!-- 文章 10 -->
+    <item>
+      <title>设计模式在前端的应用</title>
+      <link>https://SongQ-Young.github.io/posts/design-patterns.html</link>
+      <description>介绍常用设计模式在前端开发中的实际应用。</description>
+      <pubDate>Wed, 25 Sep 2024 00:00:00 GMT</pubDate>
+      <guid>https://SongQ-Young.github.io/posts/design-patterns.html</guid>
+      <category>设计模式</category>
+      <category>JavaScript</category>
+    </item>
+  </channel>
+</rss>

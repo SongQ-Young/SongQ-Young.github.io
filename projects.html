@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SongQ-Young 的项目展示">
+    <title>项目展示 - SongQ-Young 的博客</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- 粒子背景 -->
+    <div id="particles-js"></div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">SongQ-Young</a>
+
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">首页</a></li>
+                <li><a href="projects.html" class="nav-link active">项目</a></li>
+                <li><a href="archive.html" class="nav-link">归档</a></li>
+                <li><a href="about.html" class="nav-link">关于</a></li>
+                <li><button id="theme-toggle" class="theme-toggle">🌙 深色</button></li>
+            </ul>
+
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <!-- 页面标题 -->
+    <section class="hero">
+        <div class="container">
+            <h1>💼 我的项目</h1>
+            <p>分享我开发的一些有趣的项目和开源贡献</p>
+        </div>
+    </section>
+
+    <!-- 主内容区 -->
+    <div class="container">
+        <!-- 项目列表 -->
+        <div class="projects-grid">
+            <!-- 项目 1 -->
+            <div class="project-card">
+                <h3>🌟 个人博客系统</h3>
+                <p>基于 GitHub Pages 构建的现代化个人博客，支持深色模式、文章搜索、标签过滤等功能。采用响应式设计，完美适配各种设备。</p>
+                <div class="tags">
+                    <span class="tag">HTML</span>
+                    <span class="tag">CSS</span>
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">GitHub Pages</span>
+                </div>
+                <div class="project-links">
+                    <a href="https://github.com/SongQ-Young/SongQ-Young.github.io" target="_blank" class="project-link">GitHub →</a>
+                    <a href="https://SongQ-Young.github.io" target="_blank" class="project-link">在线演示 →</a>
+                </div>
+            </div>
+
+            <!-- 项目 2 -->
+            <div class="project-card">
+                <h3>🚀 React Todo App</h3>
+                <p>使用 React Hooks 和 Context API 构建的待办事项应用，支持任务分类、优先级设置、本地存储等功能。代码简洁，适合学习 React。</p>
+                <div class="tags">
+                    <span class="tag">React</span>
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">LocalStorage</span>
+                </div>
+                <div class="project-links">
+                    <a href="#" target="_blank" class="project-link">GitHub →</a>
+                    <a href="#" target="_blank" class="project-link">在线演示 →</a>
+                </div>
+            </div>
+
+            <!-- 项目 3 -->
+            <div class="project-card">
+                <h3>📊 算法可视化工具</h3>
+                <p>交互式算法可视化工具，帮助理解常见排序和搜索算法的执行过程。支持自定义数据、调整速度、步进执行等功能。</p>
+                <div class="tags">
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">Canvas</span>
+                    <span class="tag">算法</span>
+                </div>
+                <div class="project-links">
+                    <a href="#" target="_blank" class="project-link">GitHub →</a>
+                    <a href="#" target="_blank" class="project-link">在线演示 →</a>
+                </div>
+            </div>
+
+            <!-- 项目 4 -->
+            <div class="project-card">
+                <h3>🎨 CSS 组件库</h3>
+                <p>轻量级的 CSS 组件库，提供常用的 UI 组件和实用工具类。无需 JavaScript，纯 CSS 实现，易于集成和定制。</p>
+                <div class="tags">
+                    <span class="tag">CSS</span>
+                    <span class="tag">SCSS</span>
+                    <span class="tag">UI</span>
+                </div>
+                <div class="project-links">
+                    <a href="#" target="_blank" class="project-link">GitHub →</a>
+                    <a href="#" target="_blank" class="project-link">文档 →</a>
+                </div>
+            </div>
+
+            <!-- 项目 5 -->
+            <div class="project-card">
+                <h3>🔧 开发工具集</h3>
+                <p>收集整理的常用开发工具和实用脚本，包括代码格式化、构建优化、自动化部署等，提高开发效率。</p>
+                <div class="tags">
+                    <span class="tag">Node.js</span>
+                    <span class="tag">Shell</span>
+                    <span class="tag">工具</span>
+                </div>
+                <div class="project-links">
+                    <a href="#" target="_blank" class="project-link">GitHub →</a>
+                    <a href="#" target="_blank" class="project-link">文档 →</a>
+                </div>
+            </div>
+
+            <!-- 项目 6 -->
+            <div class="project-card">
+                <h3>📝 Markdown 编辑器</h3>
+                <p>功能丰富的在线 Markdown 编辑器，支持实时预览、语法高亮、导出 PDF、主题切换等功能。界面简洁，操作流畅。</p>
+                <div class="tags">
+                    <span class="tag">Vue</span>
+                    <span class="tag">Markdown</span>
+                    <span class="tag">编辑器</span>
+                </div>
+                <div class="project-links">
+                    <a href="#" target="_blank" class="project-link">GitHub →</a>
+                    <a href="#" target="_blank" class="project-link">在线演示 →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 开源贡献 -->
+        <section class="section" style="margin-top: 3rem;">
+            <h2>🌐 开源贡献</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-date">2024-11</div>
+                    <div class="timeline-content">
+                        <h3>贡献到 React 文档</h3>
+                        <p>修复了中文文档的翻译错误，提高了文档质量。PR 已合并。</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-date">2024-10</div>
+                    <div class="timeline-content">
+                        <h3>参与 Vue.js 社区</h3>
+                        <p>在 Vue.js 论坛回答问题，帮助新手解决常见问题，获得社区认可。</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-date">2024-09</div>
+                    <div class="timeline-content">
+                        <h3>开源项目维护</h3>
+                        <p>维护个人开源项目，处理 Issues 和 Pull Requests，持续改进代码质量。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GitHub 统计 -->
+        <section class="section">
+            <h2>📈 GitHub 统计</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                我的 GitHub 活动统计和代码贡献情况
+            </p>
+            <div style="text-align: center;">
+                <img src="https://github-readme-stats.vercel.app/api?username=SongQ-Young&show_icons=true&theme=default"
+                     alt="GitHub Stats" style="max-width: 100%; height: auto; border-radius: 8px;">
+            </div>
+        </section>
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <p>&copy; 2024 SongQ-Young. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="https://github.com/SongQ-Young" target="_blank">GitHub</a>
+            <a href="rss.xml">RSS</a>
+            <a href="#">隐私政策</a>
+            <a href="#">使用条款</a>
+        </div>
+        <p style="margin-top: 1rem;">Powered by GitHub Pages ❤️</p>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="back-to-top">↑</button>
+
+    <!-- JavaScript -->
+    <script src="js/main.js"></script>
+</body>
+</html>
