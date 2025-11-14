@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Hooks 实战指南 - SongQ-Young 的博客</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-brand">SongQ-Young</a>
+            <ul class="nav-menu">
+                <li><a href="../index.html" class="nav-link">首页</a></li>
+                <li><a href="../projects.html" class="nav-link">项目</a></li>
+                <li><a href="../archive.html" class="nav-link">归档</a></li>
+                <li><a href="../about.html" class="nav-link">关于</a></li>
+                <li><button id="theme-toggle" class="theme-toggle">🌙 深色</button></li>
+            </ul>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 900px;">
+        <article class="section">
+            <header style="text-align: center; padding: 2rem 0; border-bottom: 1px solid var(--border-color); margin-bottom: 2rem;">
+                <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">React Hooks 实战指南</h1>
+                <div style="color: var(--text-secondary);">
+                    <span>📅 2024-11-01</span>
+                    <span style="margin: 0 1rem;">•</span>
+                    <span>⏱️ 10 分钟</span>
+                </div>
+                <div class="tags" style="justify-content: center; margin-top: 1rem;">
+                    <span class="tag">React</span>
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">前端</span>
+                </div>
+            </header>
+
+            <div style="line-height: 1.8;">
+                <h2 style="color: var(--primary-color); margin: 2rem 0 1rem;">🎯 什么是 Hooks？</h2>
+                <p style="margin-bottom: 1.5rem;">
+                    React Hooks 是 React 16.8 引入的新特性，让你在不编写 class 的情况下使用 state 和其他 React 特性。
+                </p>
+
+                <h2 style="color: var(--primary-color); margin: 2rem 0 1rem;">📚 useState - 状态管理</h2>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>import React, { useState } from 'react';
+
+function Counter() {
+    const [count, setCount] = useState(0);
+
+    return (
+        &lt;div&gt;
+            &lt;p&gt;Count: {count}&lt;/p&gt;
+            &lt;button onClick={() => setCount(count + 1)}&gt;
+                增加
+            &lt;/button&gt;
+        &lt;/div&gt;
+    );
+}</code></pre>
+
+                <h2 style="color: var(--primary-color); margin: 2rem 0 1rem;">🔄 useEffect - 副作用处理</h2>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>import { useEffect } from 'react';
+
+function DataFetcher() {
+    const [data, setData] = useState(null);
+
+    useEffect(() => {
+        // 组件挂载时执行
+        fetchData().then(setData);
+
+        // 清理函数
+        return () => {
+            // 组件卸载时执行
+            cleanup();
+        };
+    }, []); // 依赖数组为空，只执行一次
+
+    return &lt;div&gt;{data}&lt;/div&gt;;
+}</code></pre>
+
+                <h2 style="color: var(--primary-color); margin: 2rem 0 1rem;">🎨 useContext - 跨组件传值</h2>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>import { createContext, useContext } from 'react';
+
+const ThemeContext = createContext('light');
+
+function ThemedButton() {
+    const theme = useContext(ThemeContext);
+    return &lt;button className={theme}&gt;按钮&lt;/button&gt;;
+}</code></pre>
+
+                <h2 style="color: var(--primary-color); margin: 2rem 0 1rem;">🚀 自定义 Hook</h2>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>// 自定义 Hook：useFetch
+function useFetch(url) {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                setData(data);
+                setLoading(false);
+            })
+            .catch(err => {
+                setError(err);
+                setLoading(false);
+            });
+    }, [url]);
+
+    return { data, loading, error };
+}
+
+// 使用
+function App() {
+    const { data, loading, error } = useFetch('/api/data');
+
+    if (loading) return &lt;div&gt;加载中...&lt;/div&gt;;
+    if (error) return &lt;div&gt;错误: {error.message}&lt;/div&gt;;
+    return &lt;div&gt;{JSON.stringify(data)}&lt;/div&gt;;
+}</code></pre>
+
+                <h2 style="color: var(--primary-color); margin: 2rem 0 1rem;">💡 最佳实践</h2>
+                <ul style="padding-left: 2rem; margin-bottom: 1.5rem;">
+                    <li style="margin-bottom: 0.5rem;">只在最顶层使用 Hook</li>
+                    <li style="margin-bottom: 0.5rem;">只在 React 函数中调用 Hook</li>
+                    <li style="margin-bottom: 0.5rem;">使用 ESLint 插件检查 Hook 规则</li>
+                    <li style="margin-bottom: 0.5rem;">合理拆分自定义 Hook</li>
+                </ul>
+
+                <div style="background: var(--tag-bg); padding: 1.5rem; border-radius: 8px; margin-top: 2rem;">
+                    <p><strong>💡 提示：</strong> Hooks 让函数组件拥有了类组件的所有能力，是React现代开发的基础。</p>
+                </div>
+            </div>
+
+            <footer style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                <a href="../index.html" style="color: var(--primary-color);">← 返回首页</a>
+            </footer>
+        </article>
+
+        <section class="section">
+            <h2>💬 评论</h2>
+            <script src="https://giscus.app/client.js"
+                    data-repo="SongQ-Young/SongQ-Young.github.io"
+                    data-repo-id="R_kgDOPvLCHw"
+                    data-category="Announcements"
+                    data-category-id="DIC_kwDOPvLCH84Cxv3b"
+                    data-mapping="pathname"
+                    data-strict="0"
+                    data-reactions-enabled="1"
+                    data-emit-metadata="0"
+                    data-input-position="top"
+                    data-theme="preferred_color_scheme"
+                    data-lang="zh-CN"
+                    crossorigin="anonymous"
+                    async>
+            </script>
+        </section>
+    </div>
+
+    <button id="back-to-top" class="back-to-top">↑</button>
+    <script src="../js/main.js"></script>
+</body>
+</html>

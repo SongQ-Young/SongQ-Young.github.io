@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="使用 GitHub Pages 搭建简洁美观的个人博客">
+    <meta name="keywords" content="GitHub Pages, 博客, 前端, 建站">
+    <title>如何搭建个人博客 - SongQ-Young 的博客</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-brand">SongQ-Young</a>
+            <ul class="nav-menu">
+                <li><a href="../index.html" class="nav-link">首页</a></li>
+                <li><a href="../projects.html" class="nav-link">项目</a></li>
+                <li><a href="../archive.html" class="nav-link">归档</a></li>
+                <li><a href="../about.html" class="nav-link">关于</a></li>
+                <li><button id="theme-toggle" class="theme-toggle">🌙 深色</button></li>
+            </ul>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <!-- 文章内容 -->
+    <div class="container" style="max-width: 900px;">
+        <article class="section">
+            <!-- 文章头部 -->
+            <header style="text-align: center; padding: 2rem 0; border-bottom: 1px solid var(--border-color); margin-bottom: 2rem;">
+                <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--text-color);">如何搭建个人博客</h1>
+                <div style="color: var(--text-secondary); font-size: 0.95rem;">
+                    <span>📅 发布于 2024-11-13</span>
+                    <span style="margin: 0 1rem;">•</span>
+                    <span>⏱️ 阅读时间 8 分钟</span>
+                    <span style="margin: 0 1rem;">•</span>
+                    <span>✍️ SongQ-Young</span>
+                </div>
+                <div class="tags" style="justify-content: center; margin-top: 1rem;">
+                    <span class="tag">GitHub Pages</span>
+                    <span class="tag">博客</span>
+                    <span class="tag">前端</span>
+                </div>
+            </header>
+
+            <!-- 文章正文 -->
+            <div style="line-height: 1.8; color: var(--text-color);">
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">📝 前言</h2>
+                <p style="margin-bottom: 1.5rem;">
+                    在这个信息爆炸的时代，拥有一个属于自己的博客是记录学习、分享知识的最好方式。本文将详细介绍如何使用 GitHub Pages 从零开始搭建一个简洁美观的个人博客。
+                </p>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">🎯 为什么选择 GitHub Pages？</h2>
+                <ul style="margin-bottom: 1.5rem; padding-left: 2rem;">
+                    <li style="margin-bottom: 0.5rem;"><strong>完全免费</strong>：GitHub 提供免费的静态网站托管服务</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>简单易用</strong>：只需要基础的 HTML/CSS/JavaScript 知识</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>版本控制</strong>：使用 Git 管理你的博客内容</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>自定义域名</strong>：支持绑定自己的域名</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>HTTPS 支持</strong>：自动提供 SSL 证书</li>
+                </ul>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">🚀 快速开始</h2>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">第一步：创建 GitHub 仓库</h3>
+                <p style="margin-bottom: 1rem;">
+                    1. 登录你的 GitHub 账号<br>
+                    2. 创建一个新仓库，命名为 <code style="background: var(--tag-bg); padding: 2px 6px; border-radius: 4px;">username.github.io</code>（username 是你的 GitHub 用户名）<br>
+                    3. 勾选 "Public" 选项<br>
+                    4. 勾选 "Initialize this repository with a README"
+                </p>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">第二步：创建主页文件</h3>
+                <p style="margin-bottom: 1rem;">在仓库中创建 <code style="background: var(--tag-bg); padding: 2px 6px; border-radius: 4px;">index.html</code> 文件：</p>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;我的博客&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;欢迎来到我的博客！&lt;/h1&gt;
+    &lt;p&gt;这是我的第一篇文章。&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">第三步：启用 GitHub Pages</h3>
+                <p style="margin-bottom: 1rem;">
+                    1. 进入仓库的 Settings 页面<br>
+                    2. 在左侧菜单中找到 "Pages"<br>
+                    3. 在 "Source" 部分选择 "main" 分支<br>
+                    4. 点击 "Save" 按钮
+                </p>
+                <p style="margin-bottom: 1.5rem;">
+                    等待几分钟后，你就可以通过 <code style="background: var(--tag-bg); padding: 2px 6px; border-radius: 4px;">https://username.github.io</code> 访问你的博客了！
+                </p>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">🎨 美化你的博客</h2>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">添加样式</h3>
+                <p style="margin-bottom: 1rem;">创建 <code style="background: var(--tag-bg); padding: 2px 6px; border-radius: 4px;">style.css</code> 文件：</p>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>body {
+    font-family: -apple-system, sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    line-height: 1.6;
+    color: #333;
+}
+
+h1 {
+    color: #0366d6;
+    border-bottom: 2px solid #0366d6;
+    padding-bottom: 0.5rem;
+}</code></pre>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">响应式设计</h3>
+                <p style="margin-bottom: 1.5rem;">
+                    使用媒体查询确保博客在移动设备上也能良好显示：
+                </p>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>@media (max-width: 768px) {
+    body {
+        padding: 1rem;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+}</code></pre>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">⚡ 进阶功能</h2>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">1. 添加导航栏</h3>
+                <p style="margin-bottom: 1rem;">创建一个固定导航栏，方便访问不同页面。</p>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">2. 集成评论系统</h3>
+                <p style="margin-bottom: 1rem;">使用 Giscus 或 Utterances 添加基于 GitHub Issues 的评论功能。</p>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">3. 添加搜索功能</h3>
+                <p style="margin-bottom: 1rem;">使用 JavaScript 实现客户端搜索，让读者快速找到感兴趣的内容。</p>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">4. SEO 优化</h3>
+                <p style="margin-bottom: 1.5rem;">
+                    添加适当的 meta 标签和语义化 HTML，提高搜索引擎排名。
+                </p>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">💡 最佳实践</h2>
+                <ol style="margin-bottom: 1.5rem; padding-left: 2rem;">
+                    <li style="margin-bottom: 0.5rem;"><strong>保持简洁</strong>：简单的设计往往更有效</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>注重内容</strong>：内容为王，样式为辅</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>定期更新</strong>：保持博客的活跃度</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>优化性能</strong>：压缩图片、合并文件</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>移动优先</strong>：确保在移动设备上的体验</li>
+                </ol>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">🔗 有用的资源</h2>
+                <ul style="margin-bottom: 1.5rem; padding-left: 2rem;">
+                    <li style="margin-bottom: 0.5rem;"><a href="https://pages.github.com/" target="_blank" style="color: var(--primary-color);">GitHub Pages 官方文档</a></li>
+                    <li style="margin-bottom: 0.5rem;"><a href="https://jekyllrb.com/" target="_blank" style="color: var(--primary-color);">Jekyll 静态网站生成器</a></li>
+                    <li style="margin-bottom: 0.5rem;"><a href="https://giscus.app/zh-CN" target="_blank" style="color: var(--primary-color);">Giscus 评论系统</a></li>
+                </ul>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">🎉 总结</h2>
+                <p style="margin-bottom: 1.5rem;">
+                    搭建个人博客是一个很好的学习过程。通过 GitHub Pages，你可以免费托管你的博客，并且可以完全掌控它的外观和功能。希望本文能帮助你快速搭建属于自己的博客！
+                </p>
+                <p style="margin-bottom: 1.5rem;">
+                    如果你有任何问题或建议，欢迎在下方评论区留言讨论。
+                </p>
+
+                <div style="background: var(--tag-bg); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--primary-color); margin-top: 2rem;">
+                    <p style="margin: 0;"><strong>💡 提示：</strong> 本博客就是使用本文介绍的方法搭建的，你可以查看<a href="https://github.com/SongQ-Young/SongQ-Young.github.io" target="_blank" style="color: var(--primary-color);"> 源代码 </a>作为参考。</p>
+                </div>
+            </div>
+
+            <!-- 文章底部 -->
+            <footer style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <a href="../index.html" style="color: var(--primary-color); text-decoration: none;">← 返回首页</a>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                        分享到：
+                        <a href="#" style="color: var(--primary-color); margin-left: 0.5rem;">Twitter</a>
+                        <a href="#" style="color: var(--primary-color); margin-left: 0.5rem;">微博</a>
+                    </div>
+                </div>
+            </footer>
+        </article>
+
+        <!-- 评论区 -->
+        <section class="section comments-section">
+            <h2>💬 评论</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                欢迎在下方留言讨论。评论功能由 GitHub Discussions 提供支持。
+            </p>
+            <script src="https://giscus.app/client.js"
+                    data-repo="SongQ-Young/SongQ-Young.github.io"
+                    data-repo-id="R_kgDOPvLCHw"
+                    data-category="Announcements"
+                    data-category-id="DIC_kwDOPvLCH84Cxv3b"
+                    data-mapping="pathname"
+                    data-strict="0"
+                    data-reactions-enabled="1"
+                    data-emit-metadata="0"
+                    data-input-position="top"
+                    data-theme="preferred_color_scheme"
+                    data-lang="zh-CN"
+                    crossorigin="anonymous"
+                    async>
+            </script>
+        </section>
+    </div>
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="back-to-top">↑</button>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>

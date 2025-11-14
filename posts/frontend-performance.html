@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前端性能优化实践 - SongQ-Young 的博客</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-brand">SongQ-Young</a>
+            <ul class="nav-menu">
+                <li><a href="../index.html" class="nav-link">首页</a></li>
+                <li><a href="../projects.html" class="nav-link">项目</a></li>
+                <li><a href="../archive.html" class="nav-link">归档</a></li>
+                <li><a href="../about.html" class="nav-link">关于</a></li>
+                <li><button id="theme-toggle" class="theme-toggle">🌙 深色</button></li>
+            </ul>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 900px;">
+        <article class="section">
+            <header style="text-align: center; padding: 2rem 0; border-bottom: 1px solid var(--border-color); margin-bottom: 2rem;">
+                <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">前端性能优化实践</h1>
+                <div style="color: var(--text-secondary);">
+                    <span>📅 2024-10-28</span>
+                    <span style="margin: 0 1rem;">•</span>
+                    <span>⏱️ 12 分钟</span>
+                </div>
+                <div class="tags" style="justify-content: center; margin-top: 1rem;">
+                    <span class="tag">前端</span>
+                    <span class="tag">性能优化</span>
+                    <span class="tag">JavaScript</span>
+                </div>
+            </header>
+
+            <div style="line-height: 1.8;">
+                <h2 style="color: var(--primary-color); margin: 2rem 0 1rem;">🎯 为什么要优化性能？</h2>
+                <p style="margin-bottom: 1.5rem;">
+                    用户体验直接影响产品成功与否。研究表明，页面加载时间每增加1秒，转化率就会下降7%。性能优化不仅能提升用户体验，还能提高SEO排名。
+                </p>
+
+                <h2 style="color: var(--primary-color); margin: 2rem 0 1rem;">🚀 资源加载优化</h2>
+
+                <h3 style="margin: 1.5rem 0 1rem;">1. 图片优化</h3>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>&lt;!-- 使用 WebP 格式 --&gt;
+&lt;picture&gt;
+    &lt;source srcset="image.webp" type="image/webp"&gt;
+    &lt;img src="image.jpg" alt="图片"&gt;
+&lt;/picture&gt;
+
+&lt;!-- 懒加载 --&gt;
+&lt;img src="placeholder.jpg" data-src="real-image.jpg" loading="lazy"&gt;</code></pre>
+
+                <h3 style="margin: 1.5rem 0 1rem;">2. 代码分割</h3>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>// 动态导入
+const module = await import('./module.js');
+
+// React lazy loading
+const LazyComponent = React.lazy(() => import('./Component'));</code></pre>
+
+                <h3 style="margin: 1.5rem 0 1rem;">3. 资源压缩</h3>
+                <ul style="padding-left: 2rem; margin-bottom: 1.5rem;">
+                    <li style="margin-bottom: 0.5rem;">使用 Gzip 或 Brotli 压缩</li>
+                    <li style="margin-bottom: 0.5rem;">压缩 JavaScript 和 CSS</li>
+                    <li style="margin-bottom: 0.5rem;">移除无用代码（Tree Shaking）</li>
+                </ul>
+
+                <h2 style="color: var(--primary-color); margin: 2rem 0 1rem;">⚡ 渲染优化</h2>
+
+                <h3 style="margin: 1.5rem 0 1rem;">1. 减少重排和重绘</h3>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>// 批量修改样式
+element.style.cssText = 'width: 100px; height: 100px;';
+
+// 使用 DocumentFragment
+const fragment = document.createDocumentFragment();
+items.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item;
+    fragment.appendChild(li);
+});
+list.appendChild(fragment);</code></pre>
+
+                <h3 style="margin: 1.5rem 0 1rem;">2. 虚拟列表</h3>
+                <p style="margin-bottom: 1rem;">对于长列表，只渲染可见区域：</p>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>// 使用 react-window 或 react-virtualized
+import { FixedSizeList } from 'react-window';
+
+&lt;FixedSizeList
+    height={500}
+    itemCount={1000}
+    itemSize={50}
+&gt;
+    {Row}
+&lt;/FixedSizeList&gt;</code></pre>
+
+                <h2 style="color: var(--primary-color); margin: 2rem 0 1rem;">💾 缓存策略</h2>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>// Service Worker 缓存
+self.addEventListener('fetch', event => {
+    event.respondWith(
+        caches.match(event.request)
+            .then(response => response || fetch(event.request))
+    );
+});</code></pre>
+
+                <h2 style="color: var(--primary-color); margin: 2rem 0 1rem;">📊 性能监控</h2>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>// 使用 Performance API
+const perfData = window.performance.timing;
+const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
+
+// Web Vitals
+import {getCLS, getFID, getFCP} from 'web-vitals';
+
+getCLS(console.log);
+getFID(console.log);
+getFCP(console.log);</code></pre>
+
+                <h2 style="color: var(--primary-color); margin: 2rem 0 1rem;">✅ 优化检查清单</h2>
+                <ul style="padding-left: 2rem; margin-bottom: 1.5rem;">
+                    <li>✓ 压缩图片和资源</li>
+                    <li>✓ 启用 HTTP/2</li>
+                    <li>✓ 使用 CDN</li>
+                    <li>✓ 代码分割和懒加载</li>
+                    <li>✓ 减少 HTTP 请求</li>
+                    <li>✓ 优化关键渲染路径</li>
+                    <li>✓ 使用缓存策略</li>
+                    <li>✓ 监控性能指标</li>
+                </ul>
+
+                <div style="background: var(--tag-bg); padding: 1.5rem; border-radius: 8px; margin-top: 2rem;">
+                    <p><strong>💡 提示：</strong> 性能优化是一个持续的过程，定期监控和优化才能保持最佳状态。</p>
+                </div>
+            </div>
+
+            <footer style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                <a href="../index.html" style="color: var(--primary-color);">← 返回首页</a>
+            </footer>
+        </article>
+
+        <section class="section">
+            <h2>💬 评论</h2>
+            <script src="https://giscus.app/client.js"
+                    data-repo="SongQ-Young/SongQ-Young.github.io"
+                    data-repo-id="R_kgDOPvLCHw"
+                    data-category="Announcements"
+                    data-category-id="DIC_kwDOPvLCH84Cxv3b"
+                    data-mapping="pathname"
+                    data-strict="0"
+                    data-reactions-enabled="1"
+                    data-emit-metadata="0"
+                    data-input-position="top"
+                    data-theme="preferred_color_scheme"
+                    data-lang="zh-CN"
+                    crossorigin="anonymous"
+                    async>
+            </script>
+        </section>
+    </div>
+
+    <button id="back-to-top" class="back-to-top">↑</button>
+    <script src="../js/main.js"></script>
+</body>
+</html>

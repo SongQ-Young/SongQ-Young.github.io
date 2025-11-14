@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="深入理解 JavaScript 异步编程">
+    <meta name="keywords" content="JavaScript, 异步编程, Promise, async/await">
+    <title>JavaScript 异步编程深入理解 - SongQ-Young 的博客</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-brand">SongQ-Young</a>
+            <ul class="nav-menu">
+                <li><a href="../index.html" class="nav-link">首页</a></li>
+                <li><a href="../projects.html" class="nav-link">项目</a></li>
+                <li><a href="../archive.html" class="nav-link">归档</a></li>
+                <li><a href="../about.html" class="nav-link">关于</a></li>
+                <li><button id="theme-toggle" class="theme-toggle">🌙 深色</button></li>
+            </ul>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 900px;">
+        <article class="section">
+            <header style="text-align: center; padding: 2rem 0; border-bottom: 1px solid var(--border-color); margin-bottom: 2rem;">
+                <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--text-color);">JavaScript 异步编程深入理解</h1>
+                <div style="color: var(--text-secondary); font-size: 0.95rem;">
+                    <span>📅 发布于 2024-11-10</span>
+                    <span style="margin: 0 1rem;">•</span>
+                    <span>⏱️ 阅读时间 12 分钟</span>
+                </div>
+                <div class="tags" style="justify-content: center; margin-top: 1rem;">
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">异步编程</span>
+                    <span class="tag">前端</span>
+                </div>
+            </header>
+
+            <div style="line-height: 1.8; color: var(--text-color);">
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">🎯 什么是异步编程？</h2>
+                <p style="margin-bottom: 1.5rem;">
+                    在 JavaScript 中，异步编程是处理耗时操作（如网络请求、文件读写、定时器）的重要方式。与同步编程不同，异步操作不会阻塞后续代码的执行。
+                </p>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">📚 从回调函数说起</h2>
+                <p style="margin-bottom: 1rem;">最早的异步解决方案是回调函数：</p>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>// 回调函数示例
+function fetchData(callback) {
+    setTimeout(() => {
+        callback('数据加载完成');
+    }, 1000);
+}
+
+fetchData((data) => {
+    console.log(data); // 数据加载完成
+});</code></pre>
+
+                <p style="margin-bottom: 1.5rem;">
+                    但回调函数存在"回调地狱"的问题：
+                </p>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>// 回调地狱示例
+getData1((data1) => {
+    getData2(data1, (data2) => {
+        getData3(data2, (data3) => {
+            // 嵌套太深，难以维护
+            console.log(data3);
+        });
+    });
+});</code></pre>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">✨ Promise - 优雅的异步解决方案</h2>
+                <p style="margin-bottom: 1rem;">Promise 是 ES6 引入的异步编程解决方案，它有三种状态：</p>
+                <ul style="margin-bottom: 1.5rem; padding-left: 2rem;">
+                    <li style="margin-bottom: 0.5rem;"><strong>Pending</strong>（进行中）</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>Fulfilled</strong>（已成功）</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>Rejected</strong>（已失败）</li>
+                </ul>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">基本用法</h3>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>// 创建 Promise
+const promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+        const success = true;
+        if (success) {
+            resolve('操作成功！');
+        } else {
+            reject('操作失败！');
+        }
+    }, 1000);
+});
+
+// 使用 Promise
+promise
+    .then(result => {
+        console.log(result); // 操作成功！
+    })
+    .catch(error => {
+        console.error(error);
+    });</code></pre>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Promise 链式调用</h3>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>// Promise 链
+fetch('/api/user')
+    .then(response => response.json())
+    .then(user => fetch(`/api/posts/${user.id}`))
+    .then(response => response.json())
+    .then(posts => {
+        console.log('用户的文章：', posts);
+    })
+    .catch(error => {
+        console.error('发生错误：', error);
+    });</code></pre>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Promise 常用方法</h3>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>// Promise.all - 等待所有 Promise 完成
+Promise.all([promise1, promise2, promise3])
+    .then(results => {
+        console.log('所有请求完成：', results);
+    });
+
+// Promise.race - 返回最快完成的 Promise
+Promise.race([promise1, promise2])
+    .then(result => {
+        console.log('最快的结果：', result);
+    });
+
+// Promise.allSettled - 等待所有 Promise 完成（无论成功或失败）
+Promise.allSettled([promise1, promise2])
+    .then(results => {
+        results.forEach(result => {
+            console.log(result.status); // 'fulfilled' 或 'rejected'
+        });
+    });</code></pre>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">🚀 Async/Await - 终极异步方案</h2>
+                <p style="margin-bottom: 1.5rem;">
+                    ES2017 引入的 async/await 让异步代码看起来像同步代码，极大提高了可读性。
+                </p>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">基本语法</h3>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>// async 函数
+async function fetchUserData() {
+    try {
+        const response = await fetch('/api/user');
+        const user = await response.json();
+
+        const postsResponse = await fetch(`/api/posts/${user.id}`);
+        const posts = await postsResponse.json();
+
+        return { user, posts };
+    } catch (error) {
+        console.error('错误：', error);
+        throw error;
+    }
+}
+
+// 调用 async 函数
+fetchUserData()
+    .then(data => console.log(data))
+    .catch(error => console.error(error));</code></pre>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">并发执行</h3>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>// 错误示例：串行执行（慢）
+async function fetchDataSlow() {
+    const user = await fetchUser();      // 等待 1 秒
+    const posts = await fetchPosts();    // 等待 1 秒
+    // 总共 2 秒
+}
+
+// 正确示例：并行执行（快）
+async function fetchDataFast() {
+    const [user, posts] = await Promise.all([
+        fetchUser(),   // 同时开始
+        fetchPosts()   // 同时开始
+    ]);
+    // 总共 1 秒
+}</code></pre>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">💡 实战技巧</h2>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">1. 错误处理</h3>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>async function robustFetch(url) {
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('请求失败：', error.message);
+        // 返回默认值或重新抛出错误
+        return null;
+    }
+}</code></pre>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">2. 超时控制</h3>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>function fetchWithTimeout(url, timeout = 5000) {
+    return Promise.race([
+        fetch(url),
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('请求超时')), timeout)
+        )
+    ]);
+}</code></pre>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">3. 重试机制</h3>
+                <pre style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 8px; overflow-x: auto; margin-bottom: 1.5rem;"><code>async function fetchWithRetry(url, retries = 3) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            return await fetch(url);
+        } catch (error) {
+            if (i === retries - 1) throw error;
+            console.log(`重试 ${i + 1}/${retries}...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+    }
+}</code></pre>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">⚠️ 常见陷阱</h2>
+                <ol style="margin-bottom: 1.5rem; padding-left: 2rem;">
+                    <li style="margin-bottom: 0.5rem;"><strong>忘记 return</strong>：在 Promise 链中忘记返回值</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>串行执行</strong>：本可以并行的操作被串行执行</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>错误处理</strong>：没有正确处理 rejected 状态</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>await 位置</strong>：在循环中不当使用 await</li>
+                </ol>
+
+                <h2 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">🎯 总结</h2>
+                <p style="margin-bottom: 1.5rem;">
+                    掌握异步编程是成为优秀 JavaScript 开发者的必经之路。从回调函数到 Promise，再到 async/await，JavaScript 的异步编程越来越优雅和强大。
+                </p>
+                <p style="margin-bottom: 1.5rem;">
+                    记住：
+                </p>
+                <ul style="margin-bottom: 1.5rem; padding-left: 2rem;">
+                    <li style="margin-bottom: 0.5rem;">使用 Promise 而不是回调</li>
+                    <li style="margin-bottom: 0.5rem;">优先使用 async/await</li>
+                    <li style="margin-bottom: 0.5rem;">正确处理错误</li>
+                    <li style="margin-bottom: 0.5rem;">注意并发和串行的选择</li>
+                </ul>
+            </div>
+
+            <footer style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <a href="../index.html" style="color: var(--primary-color); text-decoration: none;">← 返回首页</a>
+                </div>
+            </footer>
+        </article>
+
+        <section class="section comments-section">
+            <h2>💬 评论</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">欢迎在下方留言讨论。</p>
+            <script src="https://giscus.app/client.js"
+                    data-repo="SongQ-Young/SongQ-Young.github.io"
+                    data-repo-id="R_kgDOPvLCHw"
+                    data-category="Announcements"
+                    data-category-id="DIC_kwDOPvLCH84Cxv3b"
+                    data-mapping="pathname"
+                    data-strict="0"
+                    data-reactions-enabled="1"
+                    data-emit-metadata="0"
+                    data-input-position="top"
+                    data-theme="preferred_color_scheme"
+                    data-lang="zh-CN"
+                    crossorigin="anonymous"
+                    async>
+            </script>
+        </section>
+    </div>
+
+    <button id="back-to-top" class="back-to-top">↑</button>
+    <script src="../js/main.js"></script>
+</body>
+</html>
