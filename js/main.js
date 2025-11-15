@@ -13,6 +13,15 @@ document.addEventListener('DOMContentLoaded', function() {
     initNavbarScroll();
     initSkillBars();
     loadPostsData();
+
+    // 新功能
+    initReadingProgress();
+    initTableOfContents();
+    initCodeCopy();
+    initImageLightbox();
+    initSyntaxHighlight();
+    initShareButtons();
+    initViewCounter();
 });
 
 // 1. 主题切换功能
@@ -376,3 +385,350 @@ function copyRSSLink() {
 // 导出函数供HTML调用
 window.copyRSSLink = copyRSSLink;
 window.typeWriter = typeWriter;
+
+// ============ 新增功能 ============
+
+// 1. 阅读进度条
+function initReadingProgress() {
+    // 创建进度条元素
+    const progressBar = document.createElement('div');
+    progressBar.id = 'reading-progress';
+    progressBar.style.cssText = `
+        position: fixed;
+        top: 60px;
+        left: 0;
+        width: 0%;
+        height: 3px;
+        background: linear-gradient(90deg, #0366d6, #4d94e8);
+        z-index: 999;
+        transition: width 0.1s ease;
+    `;
+    document.body.appendChild(progressBar);
+
+    // 更新进度
+    window.addEventListener('scroll', function() {
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight - windowHeight;
+        const scrolled = window.pageYOffset;
+        const progress = (scrolled / documentHeight) * 100;
+
+        progressBar.style.width = Math.min(progress, 100) + '%';
+    });
+}
+
+// 2. 文章目录（TOC）自动生成
+function initTableOfContents() {
+    const article = document.querySelector('article');
+    if (!article) return;
+
+    const headings = article.querySelectorAll('h2, h3');
+    if (headings.length < 3) return; // 标题太少不生成目录
+
+    // 创建目录容器
+    const tocContainer = document.createElement('div');
+    tocContainer.className = 'toc-container';
+    tocContainer.innerHTML = '<h3>📑 目录</h3><nav class="toc"></nav>';
+
+    const toc = tocContainer.querySelector('.toc');
+    const tocList = document.createElement('ul');
+
+    headings.forEach((heading, index) => {
+        // 添加ID
+        const id = `heading-${index}`;
+        heading.id = id;
+
+        // 创建目录项
+        const li = document.createElement('li');
+        li.className = heading.tagName.toLowerCase();
+        const a = document.createElement('a');
+        a.href = `#${id}`;
+        a.textContent = heading.textContent;
+        a.addEventListener('click', function(e) {
+            e.preventDefault();
+            heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // 更新URL
+            history.pushState(null, null, `#${id}`);
+        });
+
+        li.appendChild(a);
+        tocList.appendChild(li);
+    });
+
+    toc.appendChild(tocList);
+
+    // 插入到文章开头
+    const articleHeader = article.querySelector('header');
+    if (articleHeader) {
+        articleHeader.after(tocContainer);
+    }
+
+    // 高亮当前阅读的章节
+    window.addEventListener('scroll', function() {
+        let current = '';
+        headings.forEach(heading => {
+            const sectionTop = heading.offsetTop;
+            if (window.pageYOffset >= sectionTop - 100) {
+                current = heading.id;
+            }
+        });
+
+        tocList.querySelectorAll('a').forEach(a => {
+            a.classList.remove('active');
+            if (a.getAttribute('href') === `#${current}`) {
+                a.classList.add('active');
+            }
+        });
+    });
+}
+
+// 3. 代码一键复制功能
+function initCodeCopy() {
+    document.querySelectorAll('pre code').forEach(block => {
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
+        block.parentNode.insertBefore(wrapper, block);
+        wrapper.appendChild(block);
+
+        const button = document.createElement('button');
+        button.className = 'copy-code-btn';
+        button.innerHTML = '📋 复制';
+        button.style.cssText = `
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        `;
+
+        wrapper.addEventListener('mouseenter', () => button.style.opacity = '1');
+        wrapper.addEventListener('mouseleave', () => button.style.opacity = '0');
+
+        button.addEventListener('click', async function() {
+            const code = block.textContent;
+            try {
+                await navigator.clipboard.writeText(code);
+                button.innerHTML = '✓ 已复制';
+                button.style.background = '#28a745';
+                setTimeout(() => {
+                    button.innerHTML = '📋 复制';
+                    button.style.background = 'var(--primary-color)';
+                }, 2000);
+            } catch (err) {
+                button.innerHTML = '✗ 失败';
+                button.style.background = '#dc3545';
+            }
+        });
+
+        wrapper.appendChild(button);
+    });
+}
+
+// 4. 图片灯箱效果
+function initImageLightbox() {
+    const images = document.querySelectorAll('article img');
+    if (images.length === 0) return;
+
+    // 创建灯箱容器
+    const lightbox = document.createElement('div');
+    lightbox.id = 'lightbox';
+    lightbox.style.cssText = `
+        display: none;
+        position: fixed;
+        z-index: 10000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        justify-content: center;
+        align-items: center;
+    `;
+
+    const img = document.createElement('img');
+    img.style.cssText = 'max-width: 90%; max-height: 90%; object-fit: contain;';
+
+    const closeBtn = document.createElement('span');
+    closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = `
+        position: absolute;
+        top: 20px;
+        right: 40px;
+        color: white;
+        font-size: 40px;
+        cursor: pointer;
+    `;
+
+    lightbox.appendChild(img);
+    lightbox.appendChild(closeBtn);
+    document.body.appendChild(lightbox);
+
+    // 点击图片打开灯箱
+    images.forEach(image => {
+        image.style.cursor = 'pointer';
+        image.addEventListener('click', function() {
+            lightbox.style.display = 'flex';
+            img.src = this.src;
+        });
+    });
+
+    // 关闭灯箱
+    closeBtn.addEventListener('click', () => lightbox.style.display = 'none');
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) lightbox.style.display = 'none';
+    });
+}
+
+// 5. 代码语法高亮（使用 highlight.js）
+function initSyntaxHighlight() {
+    if (typeof hljs !== 'undefined') {
+        document.querySelectorAll('pre code').forEach(block => {
+            hljs.highlightElement(block);
+        });
+    }
+}
+
+// 6. 增强分享功能
+function initShareButtons() {
+    const shareContainer = document.querySelector('.share-buttons');
+    if (!shareContainer) return;
+
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent(document.title);
+
+    const shareLinks = [
+        {
+            name: 'Twitter',
+            icon: '🐦',
+            url: `https://twitter.com/intent/tweet?url=${url}&text=${title}`
+        },
+        {
+            name: '微博',
+            icon: '📱',
+            url: `https://service.weibo.com/share/share.php?url=${url}&title=${title}`
+        },
+        {
+            name: 'Facebook',
+            icon: '📘',
+            url: `https://www.facebook.com/sharer/sharer.php?u=${url}`
+        },
+        {
+            name: 'LinkedIn',
+            icon: '💼',
+            url: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`
+        }
+    ];
+
+    shareLinks.forEach(link => {
+        const btn = document.createElement('a');
+        btn.href = link.url;
+        btn.target = '_blank';
+        btn.rel = 'noopener noreferrer';
+        btn.className = 'share-btn';
+        btn.innerHTML = `${link.icon} ${link.name}`;
+        btn.style.cssText = `
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            background: var(--tag-bg);
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s;
+        `;
+        btn.addEventListener('mouseenter', function() {
+            this.style.background = 'var(--primary-color)';
+            this.style.color = 'white';
+            this.style.transform = 'translateY(-2px)';
+        });
+        btn.addEventListener('mouseleave', function() {
+            this.style.background = 'var(--tag-bg)';
+            this.style.color = 'var(--text-color)';
+            this.style.transform = 'translateY(0)';
+        });
+        shareContainer.appendChild(btn);
+    });
+}
+
+// 7. 访客统计（简单版）
+function initViewCounter() {
+    const counterElement = document.getElementById('view-count');
+    if (!counterElement) return;
+
+    const pageKey = 'views_' + window.location.pathname;
+    let views = parseInt(localStorage.getItem(pageKey) || '0');
+    views++;
+    localStorage.setItem(pageKey, views);
+
+    counterElement.textContent = views;
+
+    // 添加动画效果
+    counterElement.style.transition = 'transform 0.3s';
+    counterElement.style.transform = 'scale(1.2)';
+    setTimeout(() => {
+        counterElement.style.transform = 'scale(1)';
+    }, 300);
+}
+
+// 8. 打字机效果增强版
+function typeWriterEffect(element, text, speed = 100, callback) {
+    let i = 0;
+    element.textContent = '';
+
+    function type() {
+        if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+            setTimeout(type, speed);
+        } else if (callback) {
+            callback();
+        }
+    }
+
+    type();
+}
+
+// 9. 平滑滚动到任意元素
+function smoothScrollTo(targetId) {
+    const target = document.getElementById(targetId);
+    if (target) {
+        target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+}
+
+// 10. 添加快捷键支持
+document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + K 打开搜索
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) searchInput.focus();
+    }
+
+    // ESC 关闭灯箱
+    if (e.key === 'Escape') {
+        const lightbox = document.getElementById('lightbox');
+        if (lightbox) lightbox.style.display = 'none';
+    }
+
+    // T 键返回顶部
+    if (e.key === 't' || e.key === 'T') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+});
+
+// 导出新函数
+window.smoothScrollTo = smoothScrollTo;
+window.typeWriterEffect = typeWriterEffect;
