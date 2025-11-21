@@ -1,29 +1,64 @@
 :root {
-    --bg-color: #f8f9fa;
-    --text-color: #24292e;
-    --text-secondary: #586069;
-    --card-bg: #ffffff;
-    --border-color: #e1e4e8;
-    --primary-color: #0366d6;
-    --primary-hover: #0256c7;
-    --tag-bg: #f1f8ff;
-    --tag-color: #0366d6;
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* 科技感配色方案 */
+    --bg-color: #0a0e27;
+    --bg-secondary: #10172e;
+    --text-color: #e4e4e7;
+    --text-secondary: #a1a1aa;
+    --card-bg: rgba(22, 27, 34, 0.8);
+    --border-color: rgba(99, 102, 241, 0.2);
+    --primary-color: #6366f1;
+    --primary-hover: #818cf8;
+    --secondary-color: #22d3ee;
+    --accent-color: #a855f7;
+    --tag-bg: rgba(99, 102, 241, 0.1);
+    --tag-color: #818cf8;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #22d3ee 100%);
+    --gradient-secondary: linear-gradient(90deg, #22d3ee 0%, #6366f1 100%);
+    --glow-color: rgba(99, 102, 241, 0.5);
 }
 
 [data-theme="dark"] {
-    --bg-color: #0d1117;
-    --text-color: #c9d1d9;
-    --text-secondary: #8b949e;
-    --card-bg: #161b22;
-    --border-color: #30363d;
-    --primary-color: #58a6ff;
-    --primary-hover: #4d94e8;
-    --tag-bg: #1f6feb26;
-    --tag-color: #58a6ff;
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
+    /* 深色模式增强 */
+    --bg-color: #000000;
+    --bg-secondary: #0a0a0a;
+    --text-color: #ffffff;
+    --text-secondary: #9ca3af;
+    --card-bg: rgba(17, 24, 39, 0.9);
+    --border-color: rgba(139, 92, 246, 0.3);
+    --primary-color: #8b5cf6;
+    --primary-hover: #a78bfa;
+    --secondary-color: #06b6d4;
+    --accent-color: #ec4899;
+    --tag-bg: rgba(139, 92, 246, 0.15);
+    --tag-color: #a78bfa;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    --gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #ec4899 50%, #06b6d4 100%);
+    --gradient-secondary: linear-gradient(90deg, #06b6d4 0%, #8b5cf6 100%);
+    --glow-color: rgba(139, 92, 246, 0.6);
+}
+
+[data-theme="light"] {
+    /* 浅色模式（保留原有风格但略微调整）*/
+    --bg-color: #f8fafc;
+    --bg-secondary: #f1f5f9;
+    --text-color: #1e293b;
+    --text-secondary: #64748b;
+    --card-bg: #ffffff;
+    --border-color: #e2e8f0;
+    --primary-color: #6366f1;
+    --primary-hover: #4f46e5;
+    --secondary-color: #0ea5e9;
+    --accent-color: #a855f7;
+    --tag-bg: #f0f9ff;
+    --tag-color: #0284c7;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
+    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    --gradient-secondary: linear-gradient(90deg, #0ea5e9 0%, #6366f1 100%);
+    --glow-color: rgba(99, 102, 241, 0.3);
 }
 
 * {
@@ -37,21 +72,55 @@ html {
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, 'Inter', sans-serif;
     line-height: 1.6;
     color: var(--text-color);
     background-color: var(--bg-color);
-    transition: background-color 0.3s ease, color 0.3s ease;
+    background-image:
+        radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(34, 211, 238, 0.03) 0%, transparent 50%);
+    background-attachment: fixed;
+    position: relative;
+    transition: all 0.3s ease;
 }
 
-/* 导航栏 */
+/* 动态网格背景 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 0;
+    animation: grid-move 20s linear infinite;
+}
+
+@keyframes grid-move {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(50px, 50px);
+    }
+}
+
+/* 导航栏 - 毛玻璃效果 */
 .navbar {
-    background-color: var(--card-bg);
+    background: rgba(22, 27, 34, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: var(--shadow);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
 }
 
@@ -149,17 +218,48 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem 1.5rem;
+    padding: 3rem 1.5rem;
+    position: relative;
+    z-index: 1;
 }
 
-/* 页头 */
+/* 页头 - 科技感增强 */
 .hero {
     text-align: center;
-    padding: 4rem 1.5rem;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #4d94e8 100%);
+    padding: 6rem 1.5rem;
+    background: var(--gradient-primary);
     color: white;
     margin-bottom: 3rem;
+    position: relative;
+    overflow: hidden;
     animation: fadeInDown 0.8s ease;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 255, 255, 0.03) 2px,
+        rgba(255, 255, 255, 0.03) 4px
+    );
+    animation: hero-lines 20s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes hero-lines {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(50px);
+    }
 }
 
 .hero h1 {
@@ -176,6 +276,18 @@ body {
     animation: fadeInUp 0.8s ease 0.4s both;
 }
 
+.hero-subtitle {
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    opacity: 0.9;
+}
+
+.hero-subtitle .glow {
+    color: var(--secondary-color);
+    text-shadow: 0 0 20px var(--secondary-color);
+    animation: pulse 2s ease-in-out infinite;
+}
+
 .hero .social-links {
     display: flex;
     justify-content: center;
@@ -188,15 +300,29 @@ body {
     text-decoration: none;
     font-size: 1rem;
     padding: 0.5rem 1.5rem;
-    border: 2px solid white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 25px;
     transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.social-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.social-btn span {
+    font-size: 1.2rem;
 }
 
 .hero .social-links a:hover {
-    background-color: white;
-    color: var(--primary-color);
+    background: var(--gradient-primary);
+    border-color: var(--primary-color);
+    color: white;
     transform: translateY(-3px);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5);
 }
 
 /* 搜索栏 */
@@ -230,18 +356,39 @@ body {
 
 .search-btn {
     padding: 0.75rem 2rem;
-    background-color: var(--primary-color);
+    background: var(--gradient-primary);
     color: white;
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.search-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.search-btn:hover::before {
+    width: 300px;
+    height: 300px;
 }
 
 .search-btn:hover {
-    background-color: var(--primary-hover);
     transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(99, 102, 241, 0.5);
 }
 
 /* 标签过滤 */
@@ -277,17 +424,48 @@ body {
 /* 卡片通用样式 */
 .section {
     background-color: var(--card-bg);
-    padding: 2rem;
-    margin-bottom: 2rem;
+    padding: 2.5rem;
+    margin-bottom: 3rem;
     border-radius: 12px;
-    box-shadow: var(--shadow);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    box-shadow: var(--shadow), 0 0 20px rgba(99, 102, 241, 0.1);
     transition: all 0.3s ease;
     animation: fadeInUp 0.6s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.section:hover::before {
+    left: 100%;
 }
 
 .section:hover {
-    box-shadow: var(--shadow-hover);
+    box-shadow: var(--shadow-hover), 0 0 30px rgba(99, 102, 241, 0.3);
     transform: translateY(-5px);
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+/* Enhanced hover card variant */
+.hover-card {
+    border: 2px solid rgba(99, 102, 241, 0.3);
+    box-shadow: var(--shadow), 0 0 25px rgba(99, 102, 241, 0.15);
+}
+
+.hover-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-hover), 0 0 40px rgba(99, 102, 241, 0.4);
+    transform: translateY(-8px) scale(1.01);
 }
 
 .section h2 {
@@ -350,16 +528,56 @@ body {
 
 .project-card {
     background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(99, 102, 241, 0.3);
     border-radius: 12px;
     padding: 1.5rem;
     transition: all 0.3s ease;
     animation: fadeInUp 0.6s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.project-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        var(--primary-color) 45deg,
+        var(--secondary-color) 90deg,
+        var(--accent-color) 135deg,
+        transparent 180deg
+    );
+    animation: rotate-border 6s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.project-card::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    background-color: var(--card-bg);
+    border-radius: 11px;
+    z-index: 1;
+}
+
+.project-card > * {
+    position: relative;
+    z-index: 2;
+}
+
+.project-card:hover::before {
+    opacity: 1;
 }
 
 .project-card:hover {
     transform: translateY(-5px);
-    box-shadow: var(--shadow-hover);
+    box-shadow: 0 10px 40px rgba(99, 102, 241, 0.3);
     border-color: var(--primary-color);
 }
 
@@ -456,12 +674,16 @@ body {
     font-size: 0.85rem;
     text-decoration: none;
     transition: all 0.3s ease;
+    border: 1px solid transparent;
+    position: relative;
 }
 
 .tag:hover {
-    background-color: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
     color: white;
     transform: translateY(-2px);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
 }
 
 /* 时间线 */
@@ -520,9 +742,9 @@ body {
     right: 2rem;
     width: 50px;
     height: 50px;
-    background-color: var(--primary-color);
+    background: var(--gradient-primary);
     color: white;
-    border: none;
+    border: 2px solid rgba(99, 102, 241, 0.5);
     border-radius: 50%;
     cursor: pointer;
     font-size: 1.5rem;
@@ -532,18 +754,20 @@ body {
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
-    box-shadow: var(--shadow-hover);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
     z-index: 999;
 }
 
 .back-to-top.show {
     opacity: 1;
     visibility: visible;
+    animation: pulse 2s ease-in-out infinite;
 }
 
 .back-to-top:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-5px);
+    transform: translateY(-5px) scale(1.1);
+    box-shadow: 0 6px 30px rgba(99, 102, 241, 0.6);
+    animation: none;
 }
 
 /* 评论区 */
@@ -894,6 +1118,12 @@ pre code {
 }
 
 @keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes rotate-border {
     to {
         transform: rotate(360deg);
     }
