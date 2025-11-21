@@ -53,14 +53,48 @@
 
     <!-- 主内容区 -->
     <div class="container">
+        <!-- 数据统计面板 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📝</div>
+                <div class="stat-content">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">文章</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏷️</div>
+                <div class="stat-content">
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">标签</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👁️</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="total-views">0</div>
+                    <div class="stat-label">访问量</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-content">
+                    <div class="stat-value">∞</div>
+                    <div class="stat-label">热情</div>
+                </div>
+            </div>
+        </div>
+
         <!-- 搜索和过滤 -->
         <div class="search-container">
-            <div class="search-box">
+            <div class="search-wrapper">
+                <div class="search-icon">🔍</div>
                 <input type="text" id="search-input" class="search-input" placeholder="搜索文章标题、内容或标签...">
-                <button id="search-btn" class="search-btn">🔍 搜索</button>
+                <button id="search-btn" class="search-btn">搜索</button>
             </div>
 
             <div class="tags-filter">
+                <span class="filter-label">筛选：</span>
                 <span class="tag-filter active" data-tag="all">全部</span>
                 <span class="tag-filter" data-tag="GitHub Pages">GitHub Pages</span>
                 <span class="tag-filter" data-tag="JavaScript">JavaScript</span>
@@ -70,21 +104,37 @@
             </div>
         </div>
 
-        <!-- 关于我 -->
-        <section class="section about">
-            <h2>👋 关于我</h2>
-            <p>
-                欢迎来到我的个人博客！我是一名热爱技术的开发者，专注于前端开发、算法学习和开源项目。
-            </p>
-            <p>
-                在这里，我会分享我的学习笔记、技术见解和项目经验。希望我的文章能够对你有所帮助。
-            </p>
-        </section>
+        <!-- 关于我和技能栈 -->
+        <div class="two-column-grid">
+            <!-- 关于我 -->
+            <section class="section about-card">
+                <h2>👋 关于我</h2>
+                <p>
+                    欢迎来到我的个人博客！我是一名热爱技术的开发者，专注于前端开发、算法学习和开源项目。
+                </p>
+                <p>
+                    在这里，我会分享我的学习笔记、技术见解和项目经验。希望我的文章能够对你有所帮助。
+                </p>
+                <div class="about-highlights">
+                    <div class="highlight-item">
+                        <span class="highlight-icon">🚀</span>
+                        <span>热爱学习</span>
+                    </div>
+                    <div class="highlight-item">
+                        <span class="highlight-icon">💡</span>
+                        <span>乐于分享</span>
+                    </div>
+                    <div class="highlight-item">
+                        <span class="highlight-icon">🎯</span>
+                        <span>注重实践</span>
+                    </div>
+                </div>
+            </section>
 
-        <!-- 技能展示 -->
-        <section class="section">
-            <h2>💻 技能栈</h2>
-            <div class="skills-grid">
+            <!-- 技能展示 -->
+            <section class="section skills-card">
+                <h2>💻 技能栈</h2>
+                <div class="skills-grid">
                 <div class="skill-item">
                     <div class="skill-header">
                         <span class="skill-name">JavaScript / TypeScript</span>
@@ -146,63 +196,94 @@
                 </div>
             </div>
         </section>
+        </div>
 
         <!-- 最新文章 -->
-        <section class="section">
-            <h2>📝 最新文章</h2>
-            <ul class="posts">
-                <li class="post-item">
-                    <div class="post-date">2024-11-13</div>
+        <section class="section articles-section">
+            <div class="section-header">
+                <h2>📝 最新文章</h2>
+                <a href="archive.html" class="view-all-btn">查看全部 →</a>
+            </div>
+            <div class="posts-grid">
+                <article class="post-card">
+                    <div class="post-card-header">
+                        <span class="post-badge">新</span>
+                        <span class="post-date">2024-11-13</span>
+                    </div>
                     <h3><a href="posts/how-to-build-blog.html">如何搭建个人博客</a></h3>
                     <p class="post-description">使用 GitHub Pages 搭建简洁美观的个人博客，记录你的技术成长之路。本文将详细介绍从零开始搭建个人博客的完整流程。</p>
-                    <div class="tags">
-                        <span class="tag">GitHub Pages</span>
-                        <span class="tag">博客</span>
-                        <span class="tag">前端</span>
+                    <div class="post-card-footer">
+                        <div class="tags">
+                            <span class="tag">GitHub Pages</span>
+                            <span class="tag">博客</span>
+                            <span class="tag">前端</span>
+                        </div>
+                        <span class="read-more">阅读 →</span>
                     </div>
-                </li>
+                </article>
 
-                <li class="post-item">
-                    <div class="post-date">2024-11-10</div>
+                <article class="post-card">
+                    <div class="post-card-header">
+                        <span class="post-badge hot">热</span>
+                        <span class="post-date">2024-11-10</span>
+                    </div>
                     <h3><a href="posts/javascript-async.html">JavaScript 异步编程深入理解</a></h3>
                     <p class="post-description">深入探讨 JavaScript 中的异步编程模式，包括 Promise、async/await 等。通过实例代码理解异步编程的核心概念。</p>
-                    <div class="tags">
-                        <span class="tag">JavaScript</span>
-                        <span class="tag">异步编程</span>
-                        <span class="tag">前端</span>
+                    <div class="post-card-footer">
+                        <div class="tags">
+                            <span class="tag">JavaScript</span>
+                            <span class="tag">异步编程</span>
+                            <span class="tag">前端</span>
+                        </div>
+                        <span class="read-more">阅读 →</span>
                     </div>
-                </li>
+                </article>
 
-                <li class="post-item">
-                    <div class="post-date">2024-11-05</div>
+                <article class="post-card">
+                    <div class="post-card-header">
+                        <span class="post-date">2024-11-05</span>
+                    </div>
                     <h3><a href="posts/algorithm-dp.html">算法学习笔记：动态规划</a></h3>
                     <p class="post-description">系统学习动态规划算法，通过经典题目掌握解题思路和技巧。包括背包问题、最长公共子序列等经典问题。</p>
-                    <div class="tags">
-                        <span class="tag">算法</span>
-                        <span class="tag">动态规划</span>
+                    <div class="post-card-footer">
+                        <div class="tags">
+                            <span class="tag">算法</span>
+                            <span class="tag">动态规划</span>
+                        </div>
+                        <span class="read-more">阅读 →</span>
                     </div>
-                </li>
+                </article>
 
-                <li class="post-item">
-                    <div class="post-date">2024-11-01</div>
+                <article class="post-card">
+                    <div class="post-card-header">
+                        <span class="post-date">2024-11-01</span>
+                    </div>
                     <h3><a href="posts/react-hooks.html">React Hooks 实战指南</a></h3>
                     <p class="post-description">深入理解 React Hooks 的使用方法和最佳实践，包括 useState、useEffect、useContext 等常用 Hooks。</p>
-                    <div class="tags">
-                        <span class="tag">JavaScript</span>
-                        <span class="tag">前端</span>
+                    <div class="post-card-footer">
+                        <div class="tags">
+                            <span class="tag">JavaScript</span>
+                            <span class="tag">前端</span>
+                        </div>
+                        <span class="read-more">阅读 →</span>
                     </div>
-                </li>
+                </article>
 
-                <li class="post-item">
-                    <div class="post-date">2024-10-28</div>
+                <article class="post-card">
+                    <div class="post-card-header">
+                        <span class="post-date">2024-10-28</span>
+                    </div>
                     <h3><a href="posts/frontend-performance.html">前端性能优化实践</a></h3>
                     <p class="post-description">分享前端性能优化的实用技巧，包括代码分割、懒加载、缓存策略等，让你的网站飞起来。</p>
-                    <div class="tags">
-                        <span class="tag">前端</span>
-                        <span class="tag">JavaScript</span>
+                    <div class="post-card-footer">
+                        <div class="tags">
+                            <span class="tag">前端</span>
+                            <span class="tag">JavaScript</span>
+                        </div>
+                        <span class="read-more">阅读 →</span>
                     </div>
-                </li>
-            </ul>
+                </article>
+            </div>
         </section>
 
         <!-- 评论区 -->
