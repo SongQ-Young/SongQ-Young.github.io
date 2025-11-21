@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="深入探讨模型预测控制(MPC)的理论基础及其在自主导航中的应用,包括状态空间建模、代价函数设计、约束处理以及ROS集成实现">
+    <meta name="keywords" content="MPC, 模型预测控制, 自主导航, 轨迹跟踪, ROS, 运动控制">
+    <title>模型预测控制(MPC)在自主导航中的应用 - SongQ-Young</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-brand">SongQ-Young</a>
+            <ul class="nav-menu">
+                <li><a href="../index.html" class="nav-link">首页</a></li>
+                <li><a href="../projects.html" class="nav-link">项目</a></li>
+                <li><a href="../archive.html" class="nav-link">归档</a></li>
+                <li><a href="../tags.html" class="nav-link">标签</a></li>
+                <li><a href="../about.html" class="nav-link">关于</a></li>
+                <li><button id="theme-toggle" class="theme-toggle">🌙 深色</button></li>
+            </ul>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <!-- 文章内容 -->
+    <article class="container">
+        <header class="post-header">
+            <h1>模型预测控制(MPC)在自主导航中的应用</h1>
+            <div class="post-meta">
+                <span class="post-date">📅 2024-12-08</span>
+                <span class="post-author">✍️ SongQ-Young</span>
+                <span class="post-category">🏷️ 运动控制</span>
+            </div>
+            <div class="tags">
+                <span class="tag">运动控制</span>
+                <span class="tag">MPC</span>
+                <span class="tag">ROS</span>
+            </div>
+        </header>
+
+        <section class="post-content">
+            <h2>1. 引言</h2>
+            <p>
+                模型预测控制(Model Predictive Control, MPC)作为一种先进的控制策略,在自主导航领域展现出卓越的性能。与传统的PID控制器不同,MPC能够显式地处理系统约束、预测未来状态,并优化长期性能指标。本文将深入探讨MPC的理论基础、数学原理以及在移动机器人导航中的实际应用。
+            </p>
+            <p>
+                MPC的核心思想是在每个控制周期内,求解一个有限时域的开环优化问题。通过滚动优化和反馈校正,MPC能够在满足系统约束的前提下实现最优控制。这使得MPC特别适合处理具有复杂动态特性和多约束的移动机器人系统。
+            </p>
+
+            <h2>2. MPC基本原理</h2>
+            <h3>2.1 预测控制框架</h3>
+            <p>
+                MPC的工作流程包含三个核心步骤:
+            </p>
+            <ul>
+                <li><strong>预测</strong>: 基于系统模型预测未来N步的状态轨迹</li>
+                <li><strong>优化</strong>: 求解最优控制序列以最小化代价函数</li>
+                <li><strong>执行</strong>: 仅应用第一个控制输入,然后重复整个过程</li>
+            </ul>
+
+            <h3>2.2 MPC优化问题</h3>
+            <p>
+                标准的MPC问题可以表述为:
+            </p>
+            <pre><code class="language-cpp">// MPC优化问题的数学表述
+minimize: J = Σ(||x_k - x_ref||²_Q + ||u_k||²_R) + ||x_N - x_ref||²_P
+
+subject to:
+    x_{k+1} = f(x_k, u_k)           // 系统动态约束
+    x_min ≤ x_k ≤ x_max             // 状态约束
+    u_min ≤ u_k ≤ u_max             // 控制约束
+    Δu_min ≤ u_k - u_{k-1} ≤ Δu_max // 控制变化率约束
+
+其中:
+    x_k: k时刻的状态向量
+    u_k: k时刻的控制输入
+    x_ref: 参考轨迹
+    Q, R, P: 权重矩阵
+    N: 预测时域长度
+</code></pre>
+
+            <h3>2.3 滚动时域策略</h3>
+            <p>
+                MPC采用滚动时域(Receding Horizon)策略,在每个采样时刻重新求解优化问题:
+            </p>
+            <pre><code class="language-cpp">// 滚动时域MPC伪代码
+function MPC_Control(x_current, reference_trajectory):
+    while system_running:
+        // 1. 状态估计/测量
+        x_measured = get_current_state()
+
+        // 2. 求解优化问题
+        u_sequence = solve_optimization(
+            x_initial = x_measured,
+            x_reference = reference_trajectory,
+            horizon = N
+        )
+
+        // 3. 应用第一个控制输入
+        apply_control(u_sequence[0])
+
+        // 4. 等待下一个采样周期
+        wait(sampling_time)
+
+        // 5. 滚动时域前进,重复优化
+</code></pre>
+
+            <h2>3. 移动机器人状态空间模型</h2>
+            <h3>3.1 运动学模型</h3>
+            <p>
+                对于差分驱动机器人,常用的运动学模型为:
+            </p>
+            <pre><code class="language-cpp">// 差分驱动机器人运动学模型
+struct RobotState {
+    double x;      // x坐标 (m)
+    double y;      // y坐标 (m)
+    double theta;  // 航向角 (rad)
+    double v;      // 线速度 (m/s)
+    double omega;  // 角速度 (rad/s)
+};
+
+// 连续时间状态方程
+// ẋ = v * cos(θ)
+// ẏ = v * sin(θ)
+// θ̇ = ω
+// v̇ = a
+// ω̇ = α
+
+class KinematicModel {
+public:
+    RobotState predict(const RobotState& state,
+                      const ControlInput& u,
+                      double dt) {
+        RobotState next_state;
+
+        // 使用欧拉积分或龙格库塔法
+        next_state.x = state.x + state.v * cos(state.theta) * dt;
+        next_state.y = state.y + state.v * sin(state.theta) * dt;
+        next_state.theta = state.theta + state.omega * dt;
+        next_state.v = state.v + u.acceleration * dt;
+        next_state.omega = state.omega + u.angular_acc * dt;
+
+        return next_state;
+    }
+};
+</code></pre>
+
+            <h3>3.2 线性化模型</h3>
+            <p>
+                为了便于求解,通常需要在参考轨迹附近线性化非线性模型:
+            </p>
+            <pre><code class="language-cpp">// 线性化状态空间模型: x_{k+1} = A_k*x_k + B_k*u_k
+class LinearizedModel {
+private:
+    Eigen::MatrixXd compute_A_matrix(const RobotState& ref_state, double dt) {
+        Eigen::MatrixXd A = Eigen::MatrixXd::Identity(5, 5);
+
+        // 根据雅可比矩阵计算A矩阵
+        A(0, 2) = -ref_state.v * sin(ref_state.theta) * dt;
+        A(0, 3) = cos(ref_state.theta) * dt;
+        A(1, 2) = ref_state.v * cos(ref_state.theta) * dt;
+        A(1, 3) = sin(ref_state.theta) * dt;
+        A(2, 4) = dt;
+
+        return A;
+    }
+
+    Eigen::MatrixXd compute_B_matrix(const RobotState& ref_state, double dt) {
+        Eigen::MatrixXd B = Eigen::MatrixXd::Zero(5, 2);
+
+        // 控制输入: [加速度, 角加速度]
+        B(3, 0) = dt;  // v对线加速度的导数
+        B(4, 1) = dt;  // ω对角加速度的导数
+
+        return B;
+    }
+
+public:
+    void linearize(const RobotState& ref_state,
+                   Eigen::MatrixXd& A,
+                   Eigen::MatrixXd& B,
+                   double dt) {
+        A = compute_A_matrix(ref_state, dt);
+        B = compute_B_matrix(ref_state, dt);
+    }
+};
+</code></pre>
+
+            <h2>4. 代价函数设计</h2>
+            <h3>4.1 多目标代价函数</h3>
+            <p>
+                设计合理的代价函数是MPC成功应用的关键:
+            </p>
+            <pre><code class="language-cpp">class MPCCostFunction {
+private:
+    // 权重矩阵
+    Eigen::MatrixXd Q_;  // 状态误差权重
+    Eigen::MatrixXd R_;  // 控制输入权重
+    Eigen::MatrixXd P_;  // 终端状态权重
+
+    double w_contour_;   // 轮廓误差权重
+    double w_lag_;       // 滞后误差权重
+    double w_heading_;   // 航向误差权重
+
+public:
+    MPCCostFunction() {
+        // 状态权重矩阵 Q
+        Q_ = Eigen::MatrixXd::Zero(5, 5);
+        Q_(0, 0) = 10.0;   // x位置误差
+        Q_(1, 1) = 10.0;   // y位置误差
+        Q_(2, 2) = 1.0;    // 航向误差
+        Q_(3, 3) = 0.5;    // 速度误差
+        Q_(4, 4) = 0.5;    // 角速度误差
+
+        // 控制输入权重矩阵 R
+        R_ = Eigen::MatrixXd::Zero(2, 2);
+        R_(0, 0) = 0.1;    // 线加速度
+        R_(1, 1) = 0.1;    // 角加速度
+
+        // 终端权重矩阵 P (通常设为Q的较大倍数)
+        P_ = 10.0 * Q_;
+    }
+
+    double compute_stage_cost(const Eigen::VectorXd& x_error,
+                              const Eigen::VectorXd& u) {
+        // 二次型代价: x^T*Q*x + u^T*R*u
+        double state_cost = x_error.transpose() * Q_ * x_error;
+        double control_cost = u.transpose() * R_ * u;
+
+        return state_cost + control_cost;
+    }
+
+    double compute_terminal_cost(const Eigen::VectorXd& x_error) {
+        return x_error.transpose() * P_ * x_error;
+    }
+
+    double compute_total_cost(const std::vector<Eigen::VectorXd>& x_traj,
+                             const std::vector<Eigen::VectorXd>& u_traj,
+                             const std::vector<Eigen::VectorXd>& x_ref) {
+        double total_cost = 0.0;
+
+        // 阶段代价
+        for (size_t k = 0; k < u_traj.size(); ++k) {
+            Eigen::VectorXd error = x_traj[k] - x_ref[k];
+            total_cost += compute_stage_cost(error, u_traj[k]);
+        }
+
+        // 终端代价
+        Eigen::VectorXd terminal_error = x_traj.back() - x_ref.back();
+        total_cost += compute_terminal_cost(terminal_error);
+
+        return total_cost;
+    }
+};
+</code></pre>
+
+            <h3>4.2 软约束处理</h3>
+            <p>
+                对于可能导致优化问题不可行的约束,可以采用软约束方法:
+            </p>
+            <pre><code class="language-cpp">// 松弛变量法处理软约束
+class SoftConstraintHandler {
+private:
+    double slack_weight_;  // 松弛变量惩罚系数
+
+public:
+    SoftConstraintHandler(double weight = 1e6)
+        : slack_weight_(weight) {}
+
+    // 将硬约束转换为软约束
+    // 例如: x_min ≤ x ≤ x_max 变为:
+    // x_min - ε ≤ x ≤ x_max + ε, 代价加上 w*ε²
+    double compute_slack_cost(double value,
+                             double min_bound,
+                             double max_bound) {
+        double slack = 0.0;
+
+        if (value < min_bound) {
+            slack = min_bound - value;
+        } else if (value > max_bound) {
+            slack = value - max_bound;
+        }
+
+        return slack_weight_ * slack * slack;
+    }
+};
+</code></pre>
+
+            <h2>5. MPC求解器实现</h2>
+            <h3>5.1 二次规划(QP)求解</h3>
+            <p>
+                对于线性MPC,问题可转化为标准QP问题。这里使用开源库qpOASES:
+            </p>
+            <pre><code class="language-cpp">#include &lt;qpOASES.hpp&gt;
+#include &lt;eigen3/Eigen/Dense&gt;
+
+class MPCSolver {
+private:
+    int horizon_;          // 预测时域
+    int state_dim_;        // 状态维度
+    int control_dim_;      // 控制维度
+    double dt_;            // 采样时间
+
+    // QP问题矩阵
+    Eigen::MatrixXd H_;    // Hessian矩阵
+    Eigen::VectorXd g_;    // 梯度向量
+    Eigen::MatrixXd A_cons_; // 约束矩阵
+    Eigen::VectorXd lb_;   // 下界
+    Eigen::VectorXd ub_;   // 上界
+
+    void formulate_qp(const RobotState& current_state,
+                     const std::vector<RobotState>& reference) {
+        int n_vars = horizon_ * control_dim_;  // 决策变量数量
+
+        // 构建Hessian矩阵 H 和梯度 g
+        // QP形式: min 0.5*x'*H*x + g'*x
+        H_.resize(n_vars, n_vars);
+        g_.resize(n_vars);
+
+        // 构建预测矩阵
+        Eigen::MatrixXd S_x, S_u;
+        build_prediction_matrices(current_state, reference, S_x, S_u);
+
+        // H = 2*(S_u'*Q*S_u + R)
+        H_ = 2.0 * (S_u.transpose() * Q_ * S_u + R_);
+
+        // g = 2*S_u'*Q*(S_x*x0 - X_ref)
+        Eigen::VectorXd x0 = state_to_vector(current_state);
+        Eigen::VectorXd x_ref = trajectory_to_vector(reference);
+        g_ = 2.0 * S_u.transpose() * Q_ * (S_x * x0 - x_ref);
+
+        // 构建约束
+        build_constraints();
+    }
+
+    void build_constraints() {
+        int n_vars = horizon_ * control_dim_;
+
+        // 控制约束: u_min ≤ u_k ≤ u_max
+        lb_.resize(n_vars);
+        ub_.resize(n_vars);
+
+        for (int k = 0; k < horizon_; ++k) {
+            lb_(k * control_dim_ + 0) = -2.0;  // 最小线加速度
+            ub_(k * control_dim_ + 0) = 2.0;   // 最大线加速度
+            lb_(k * control_dim_ + 1) = -1.0;  // 最小角加速度
+            ub_(k * control_dim_ + 1) = 1.0;   // 最大角加速度
+        }
+
+        // 控制变化率约束: Δu_min ≤ u_k - u_{k-1} ≤ Δu_max
+        // 这需要额外的不等式约束矩阵
+    }
+
+public:
+    MPCSolver(int horizon, double dt)
+        : horizon_(horizon), dt_(dt),
+          state_dim_(5), control_dim_(2) {}
+
+    std::vector<ControlInput> solve(
+        const RobotState& current_state,
+        const std::vector<RobotState>& reference_trajectory) {
+
+        // 1. 构建QP问题
+        formulate_qp(current_state, reference_trajectory);
+
+        // 2. 调用qpOASES求解器
+        int n_vars = horizon_ * control_dim_;
+        qpOASES::QProblem qp_problem(n_vars, 0);
+
+        qpOASES::Options options;
+        options.printLevel = qpOASES::PL_LOW;
+        qp_problem.setOptions(options);
+
+        // 求解
+        int max_iterations = 100;
+        qpOASES::returnValue ret = qp_problem.init(
+            H_.data(), g_.data(),
+            nullptr,  // A矩阵 (这里只有简单边界)
+            lb_.data(), ub_.data(),
+            nullptr, nullptr,
+            max_iterations
+        );
+
+        // 3. 提取控制序列
+        std::vector<double> u_opt(n_vars);
+        qp_problem.getPrimalSolution(u_opt.data());
+
+        // 4. 转换为控制输入格式
+        std::vector<ControlInput> control_sequence;
+        for (int k = 0; k < horizon_; ++k) {
+            ControlInput u;
+            u.acceleration = u_opt[k * control_dim_ + 0];
+            u.angular_acc = u_opt[k * control_dim_ + 1];
+            control_sequence.push_back(u);
+        }
+
+        return control_sequence;
+    }
+};
+</code></pre>
+
+            <h3>5.2 非线性MPC求解</h3>
+            <p>
+                对于非线性系统,可以使用IPOPT或CasADi等非线性优化库:
+            </p>
+            <pre><code class="language-cpp">#include &lt;casadi/casadi.hpp&gt;
+
+class NonlinearMPCSolver {
+private:
+    casadi::Opti opti_;    // CasADi优化器
+    int horizon_;
+    double dt_;
+
+    // 符号变量
+    casadi::MX state_vars_;     // 状态变量 [N+1 x n_x]
+    casadi::MX control_vars_;   // 控制变量 [N x n_u]
+
+public:
+    NonlinearMPCSolver(int horizon, double dt)
+        : horizon_(horizon), dt_(dt) {
+
+        // 定义优化变量
+        state_vars_ = opti_.variable(5, horizon_ + 1);
+        control_vars_ = opti_.variable(2, horizon_);
+
+        // 定义参数
+        casadi::MX x_init = opti_.parameter(5, 1);
+        casadi::MX x_ref = opti_.parameter(5, horizon_ + 1);
+
+        // 代价函数
+        casadi::MX cost = 0;
+
+        // 权重矩阵
+        std::vector<double> Q_diag = {10.0, 10.0, 1.0, 0.5, 0.5};
+        std::vector<double> R_diag = {0.1, 0.1};
+
+        for (int k = 0; k < horizon_; ++k) {
+            // 状态误差
+            casadi::MX x_error = state_vars_(casadi::Slice(), k) -
+                                x_ref(casadi::Slice(), k);
+
+            // 阶段代价
+            for (int i = 0; i < 5; ++i) {
+                cost += Q_diag[i] * x_error(i) * x_error(i);
+            }
+            for (int i = 0; i < 2; ++i) {
+                cost += R_diag[i] * control_vars_(i, k) * control_vars_(i, k);
+            }
+
+            // 动态约束
+            casadi::MX x_next = nonlinear_dynamics(
+                state_vars_(casadi::Slice(), k),
+                control_vars_(casadi::Slice(), k)
+            );
+            opti_.subject_to(state_vars_(casadi::Slice(), k+1) == x_next);
+        }
+
+        // 终端代价
+        casadi::MX x_terminal_error = state_vars_(casadi::Slice(), horizon_) -
+                                      x_ref(casadi::Slice(), horizon_);
+        for (int i = 0; i < 5; ++i) {
+            cost += 10.0 * Q_diag[i] * x_terminal_error(i) * x_terminal_error(i);
+        }
+
+        // 约束
+        opti_.subject_to(opti_.bounded(-2.0, control_vars_(0, casadi::Slice()), 2.0));
+        opti_.subject_to(opti_.bounded(-1.0, control_vars_(1, casadi::Slice()), 1.0));
+        opti_.subject_to(opti_.bounded(-1.0, state_vars_(3, casadi::Slice()), 2.0)); // 速度
+
+        // 初始条件约束
+        opti_.subject_to(state_vars_(casadi::Slice(), 0) == x_init);
+
+        // 设置目标
+        opti_.minimize(cost);
+
+        // 求解器选项
+        casadi::Dict opts;
+        opts["ipopt.print_level"] = 0;
+        opts["print_time"] = 0;
+        opts["ipopt.max_iter"] = 100;
+        opti_.solver("ipopt", opts);
+    }
+
+    casadi::MX nonlinear_dynamics(const casadi::MX& x, const casadi::MX& u) {
+        // 非线性运动学模型
+        casadi::MX x_next = casadi::MX::zeros(5, 1);
+
+        x_next(0) = x(0) + x(3) * cos(x(2)) * dt_;           // x
+        x_next(1) = x(1) + x(3) * sin(x(2)) * dt_;           // y
+        x_next(2) = x(2) + x(4) * dt_;                       // theta
+        x_next(3) = x(3) + u(0) * dt_;                       // v
+        x_next(4) = x(4) + u(1) * dt_;                       // omega
+
+        return x_next;
+    }
+};
+</code></pre>
+
+            <h2>6. ROS集成实现</h2>
+            <h3>6.1 MPC控制器节点</h3>
+            <pre><code class="language-cpp">#include &lt;ros/ros.h&gt;
+#include &lt;nav_msgs/Path.h&gt;
+#include &lt;nav_msgs/Odometry.h&gt;
+#include &lt;geometry_msgs/Twist.h&gt;
+#include &lt;tf2_ros/transform_listener.h&gt;
+
+class MPCControllerNode {
+private:
+    ros::NodeHandle nh_;
+    ros::NodeHandle pnh_;
+
+    // Publishers & Subscribers
+    ros::Subscriber odom_sub_;
+    ros::Subscriber path_sub_;
+    ros::Publisher cmd_vel_pub_;
+    ros::Publisher predicted_path_pub_;
+
+    // TF
+    tf2_ros::Buffer tf_buffer_;
+    tf2_ros::TransformListener tf_listener_;
+
+    // MPC配置
+    int horizon_;
+    double dt_;
+    double control_rate_;
+
+    // 状态
+    RobotState current_state_;
+    std::vector<RobotState> reference_trajectory_;
+    bool has_path_;
+
+    // MPC求解器
+    std::unique_ptr<MPCSolver> mpc_solver_;
+
+    void odomCallback(const nav_msgs::Odometry::ConstPtr& msg) {
+        // 更新当前状态
+        current_state_.x = msg->pose.pose.position.x;
+        current_state_.y = msg->pose.pose.position.y;
+
+        // 从四元数提取航向角
+        tf2::Quaternion q(
+            msg->pose.pose.orientation.x,
+            msg->pose.pose.orientation.y,
+            msg->pose.pose.orientation.z,
+            msg->pose.pose.orientation.w
+        );
+        tf2::Matrix3x3 m(q);
+        double roll, pitch, yaw;
+        m.getRPY(roll, pitch, yaw);
+        current_state_.theta = yaw;
+
+        current_state_.v = msg->twist.twist.linear.x;
+        current_state_.omega = msg->twist.twist.angular.z;
+    }
+
+    void pathCallback(const nav_msgs::Path::ConstPtr& msg) {
+        if (msg->poses.empty()) {
+            ROS_WARN("Received empty path");
+            has_path_ = false;
+            return;
+        }
+
+        // 转换路径为参考轨迹
+        reference_trajectory_.clear();
+
+        for (const auto& pose_stamped : msg->poses) {
+            RobotState ref_state;
+            ref_state.x = pose_stamped.pose.position.x;
+            ref_state.y = pose_stamped.pose.position.y;
+
+            // 提取航向角
+            tf2::Quaternion q(
+                pose_stamped.pose.orientation.x,
+                pose_stamped.pose.orientation.y,
+                pose_stamped.pose.orientation.z,
+                pose_stamped.pose.orientation.w
+            );
+            tf2::Matrix3x3 m(q);
+            double roll, pitch, yaw;
+            m.getRPY(roll, pitch, yaw);
+            ref_state.theta = yaw;
+
+            reference_trajectory_.push_back(ref_state);
+        }
+
+        has_path_ = true;
+        ROS_INFO("Received new reference trajectory with %lu points",
+                 reference_trajectory_.size());
+    }
+
+    void controlLoop(const ros::TimerEvent& event) {
+        if (!has_path_ || reference_trajectory_.empty()) {
+            // 发送停止命令
+            publishZeroVelocity();
+            return;
+        }
+
+        // 找到最近的参考点
+        int closest_idx = findClosestPoint(current_state_, reference_trajectory_);
+
+        // 提取预测时域内的参考轨迹
+        std::vector<RobotState> local_reference = extractLocalReference(
+            closest_idx, horizon_
+        );
+
+        // 检查是否到达目标
+        double dist_to_goal = hypot(
+            current_state_.x - reference_trajectory_.back().x,
+            current_state_.y - reference_trajectory_.back().y
+        );
+
+        if (dist_to_goal < 0.1) {
+            ROS_INFO("Goal reached!");
+            publishZeroVelocity();
+            has_path_ = false;
+            return;
+        }
+
+        // 求解MPC优化问题
+        auto start_time = ros::Time::now();
+        std::vector<ControlInput> control_sequence =
+            mpc_solver_->solve(current_state_, local_reference);
+        auto solve_time = (ros::Time::now() - start_time).toSec();
+
+        ROS_DEBUG("MPC solve time: %.3f ms", solve_time * 1000.0);
+
+        // 应用第一个控制输入
+        if (!control_sequence.empty()) {
+            publishControl(control_sequence[0]);
+
+            // 发布预测轨迹用于可视化
+            publishPredictedPath(current_state_, control_sequence);
+        } else {
+            ROS_WARN("MPC solver failed to find solution");
+            publishZeroVelocity();
+        }
+    }
+
+    int findClosestPoint(const RobotState& current,
+                        const std::vector<RobotState>& trajectory) {
+        int closest_idx = 0;
+        double min_dist = std::numeric_limits<double>::max();
+
+        for (size_t i = 0; i < trajectory.size(); ++i) {
+            double dist = hypot(current.x - trajectory[i].x,
+                              current.y - trajectory[i].y);
+            if (dist < min_dist) {
+                min_dist = dist;
+                closest_idx = i;
+            }
+        }
+
+        return closest_idx;
+    }
+
+    std::vector<RobotState> extractLocalReference(int start_idx, int length) {
+        std::vector<RobotState> local_ref;
+
+        for (int i = 0; i < length; ++i) {
+            int idx = std::min(start_idx + i,
+                             static_cast<int>(reference_trajectory_.size()) - 1);
+            local_ref.push_back(reference_trajectory_[idx]);
+        }
+
+        // 如果参考轨迹不够长,用最后一个点填充
+        while (local_ref.size() < static_cast<size_t>(length)) {
+            local_ref.push_back(reference_trajectory_.back());
+        }
+
+        return local_ref;
+    }
+
+    void publishControl(const ControlInput& u) {
+        // 将加速度转换为速度命令(简化版本)
+        geometry_msgs::Twist cmd_vel;
+
+        // 积分加速度得到速度(实际应该维护速度状态)
+        cmd_vel.linear.x = current_state_.v + u.acceleration * dt_;
+        cmd_vel.angular.z = current_state_.omega + u.angular_acc * dt_;
+
+        // 限制速度
+        cmd_vel.linear.x = std::max(-1.0, std::min(2.0, cmd_vel.linear.x));
+        cmd_vel.angular.z = std::max(-1.0, std::min(1.0, cmd_vel.angular.z));
+
+        cmd_vel_pub_.publish(cmd_vel);
+    }
+
+    void publishZeroVelocity() {
+        geometry_msgs::Twist cmd_vel;
+        cmd_vel.linear.x = 0.0;
+        cmd_vel.angular.z = 0.0;
+        cmd_vel_pub_.publish(cmd_vel);
+    }
+
+    void publishPredictedPath(const RobotState& initial_state,
+                             const std::vector<ControlInput>& controls) {
+        nav_msgs::Path predicted_path;
+        predicted_path.header.frame_id = "map";
+        predicted_path.header.stamp = ros::Time::now();
+
+        RobotState state = initial_state;
+        KinematicModel model;
+
+        for (const auto& u : controls) {
+            state = model.predict(state, u, dt_);
+
+            geometry_msgs::PoseStamped pose;
+            pose.header = predicted_path.header;
+            pose.pose.position.x = state.x;
+            pose.pose.position.y = state.y;
+
+            tf2::Quaternion q;
+            q.setRPY(0, 0, state.theta);
+            pose.pose.orientation.x = q.x();
+            pose.pose.orientation.y = q.y();
+            pose.pose.orientation.z = q.z();
+            pose.pose.orientation.w = q.w();
+
+            predicted_path.poses.push_back(pose);
+        }
+
+        predicted_path_pub_.publish(predicted_path);
+    }
+
+public:
+    MPCControllerNode() : pnh_("~"), tf_listener_(tf_buffer_), has_path_(false) {
+        // 加载参数
+        pnh_.param("horizon", horizon_, 20);
+        pnh_.param("dt", dt_, 0.1);
+        pnh_.param("control_rate", control_rate_, 10.0);
+
+        ROS_INFO("MPC Controller initialized with horizon=%d, dt=%.3f",
+                 horizon_, dt_);
+
+        // 初始化MPC求解器
+        mpc_solver_ = std::make_unique<MPCSolver>(horizon_, dt_);
+
+        // 订阅话题
+        odom_sub_ = nh_.subscribe("/odom", 1,
+            &MPCControllerNode::odomCallback, this);
+        path_sub_ = nh_.subscribe("/reference_path", 1,
+            &MPCControllerNode::pathCallback, this);
+
+        // 发布话题
+        cmd_vel_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+        predicted_path_pub_ = nh_.advertise<nav_msgs::Path>(
+            "/mpc/predicted_path", 1);
+
+        // 控制循环定时器
+        ros::Timer control_timer = nh_.createTimer(
+            ros::Duration(1.0 / control_rate_),
+            &MPCControllerNode::controlLoop, this);
+
+        ROS_INFO("MPC Controller node started");
+    }
+};
+
+int main(int argc, char** argv) {
+    ros::init(argc, argv, "mpc_controller");
+
+    MPCControllerNode controller;
+    ros::spin();
+
+    return 0;
+}
+</code></pre>
+
+            <h3>6.2 启动文件配置</h3>
+            <pre><code class="language-xml">&lt;!-- mpc_controller.launch --&gt;
+&lt;launch&gt;
+    &lt;node pkg="mpc_navigation" type="mpc_controller_node" name="mpc_controller" output="screen"&gt;
+        &lt;!-- MPC参数 --&gt;
+        &lt;param name="horizon" value="20" /&gt;
+        &lt;param name="dt" value="0.1" /&gt;
+        &lt;param name="control_rate" value="10.0" /&gt;
+
+        &lt;!-- 权重矩阵 --&gt;
+        &lt;rosparam&gt;
+            Q_weights: [10.0, 10.0, 1.0, 0.5, 0.5]  # x, y, theta, v, omega
+            R_weights: [0.1, 0.1]                    # a, alpha
+            P_factor: 10.0                           # 终端权重因子
+        &lt;/rosparam&gt;
+
+        &lt;!-- 约束 --&gt;
+        &lt;param name="max_velocity" value="2.0" /&gt;
+        &lt;param name="max_angular_velocity" value="1.0" /&gt;
+        &lt;param name="max_acceleration" value="2.0" /&gt;
+        &lt;param name="max_angular_acceleration" value="1.0" /&gt;
+
+        &lt;!-- 话题重映射 --&gt;
+        &lt;remap from="/odom" to="/mobile_base/odom" /&gt;
+        &lt;remap from="/cmd_vel" to="/mobile_base/cmd_vel" /&gt;
+    &lt;/node&gt;
+
+    &lt;!-- RViz可视化 --&gt;
+    &lt;node pkg="rviz" type="rviz" name="rviz"
+          args="-d $(find mpc_navigation)/rviz/mpc_control.rviz" /&gt;
+&lt;/launch&gt;
+</code></pre>
+
+            <h2>7. 参数调优指南</h2>
+            <h3>7.1 关键参数分析</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>参数</th>
+                        <th>作用</th>
+                        <th>调整建议</th>
+                        <th>典型值</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>预测时域 N</td>
+                        <td>控制未来N步</td>
+                        <td>过大增加计算量,过小影响性能</td>
+                        <td>10-30</td>
+                    </tr>
+                    <tr>
+                        <td>采样时间 dt</td>
+                        <td>离散化步长</td>
+                        <td>需要平衡精度和实时性</td>
+                        <td>0.05-0.2s</td>
+                    </tr>
+                    <tr>
+                        <td>位置权重 Q_xy</td>
+                        <td>轨迹跟踪精度</td>
+                        <td>值越大越严格跟踪参考轨迹</td>
+                        <td>5-20</td>
+                    </tr>
+                    <tr>
+                        <td>航向权重 Q_theta</td>
+                        <td>朝向控制</td>
+                        <td>根据任务需求调整</td>
+                        <td>0.5-5</td>
+                    </tr>
+                    <tr>
+                        <td>控制权重 R</td>
+                        <td>控制输入平滑性</td>
+                        <td>值越大动作越平滑但响应慢</td>
+                        <td>0.01-1.0</td>
+                    </tr>
+                    <tr>
+                        <td>终端权重 P</td>
+                        <td>终端状态重要性</td>
+                        <td>通常设为Q的5-10倍</td>
+                        <td>5Q-10Q</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>7.2 参数调优流程</h3>
+            <pre><code class="language-cpp">class MPCParameterTuner {
+public:
+    struct TuningResult {
+        double tracking_error;
+        double control_effort;
+        double computation_time;
+        double stability_margin;
+    };
+
+    TuningResult evaluate_parameters(const MPCParams& params,
+                                     const TestScenario& scenario) {
+        TuningResult result;
+
+        // 1. 测试轨迹跟踪误差
+        std::vector<double> position_errors;
+        std::vector<double> heading_errors;
+
+        for (const auto& test_point : scenario.trajectory) {
+            // 运行MPC并记录误差
+            RobotState predicted = run_mpc(test_point, params);
+            double pos_error = compute_position_error(predicted, test_point);
+            double heading_error = compute_heading_error(predicted, test_point);
+
+            position_errors.push_back(pos_error);
+            heading_errors.push_back(heading_error);
+        }
+
+        result.tracking_error = compute_rmse(position_errors);
+
+        // 2. 测试控制输入平滑性
+        result.control_effort = compute_total_control_effort();
+
+        // 3. 测试计算时间
+        result.computation_time = measure_solve_time(params);
+
+        // 4. 评估稳定性
+        result.stability_margin = analyze_closed_loop_stability(params);
+
+        return result;
+    }
+
+    MPCParams auto_tune(const std::vector<TestScenario>& scenarios) {
+        MPCParams best_params;
+        double best_score = std::numeric_limits<double>::max();
+
+        // 网格搜索或贝叶斯优化
+        std::vector<MPCParams> param_candidates = generate_param_grid();
+
+        for (const auto& params : param_candidates) {
+            double total_score = 0.0;
+
+            for (const auto& scenario : scenarios) {
+                TuningResult result = evaluate_parameters(params, scenario);
+
+                // 综合评分
+                double score =
+                    1.0 * result.tracking_error +
+                    0.1 * result.control_effort +
+                    0.5 * result.computation_time -
+                    0.3 * result.stability_margin;
+
+                total_score += score;
+            }
+
+            if (total_score < best_score) {
+                best_score = total_score;
+                best_params = params;
+            }
+        }
+
+        return best_params;
+    }
+};
+</code></pre>
+
+            <h3>7.3 实时性能优化</h3>
+            <pre><code class="language-cpp">class MPCPerformanceOptimizer {
+public:
+    // 热启动: 使用上一次的解作为初始猜测
+    void warm_start(const std::vector<ControlInput>& previous_solution) {
+        // 将上一次的解平移一步作为初始值
+        std::vector<ControlInput> initial_guess(horizon_);
+
+        for (int k = 0; k < horizon_ - 1; ++k) {
+            initial_guess[k] = previous_solution[k + 1];
+        }
+        // 最后一步保持不变
+        initial_guess[horizon_ - 1] = previous_solution[horizon_ - 1];
+
+        solver_->set_initial_guess(initial_guess);
+    }
+
+    // 自适应时域: 根据计算时间动态调整预测时域
+    int adaptive_horizon(double available_time, double current_horizon) {
+        double avg_time_per_step = measure_time_per_horizon_step();
+
+        int max_horizon = static_cast<int>(available_time / avg_time_per_step);
+
+        // 限制时域变化速度
+        int new_horizon = current_horizon;
+        if (max_horizon < current_horizon) {
+            new_horizon = std::max(10, current_horizon - 2);
+        } else if (max_horizon > current_horizon + 5) {
+            new_horizon = std::min(30, current_horizon + 1);
+        }
+
+        return new_horizon;
+    }
+
+    // 早停策略: 当解足够好时提前终止迭代
+    bool early_stopping_criterion(double current_cost,
+                                  double previous_cost,
+                                  int iteration) {
+        double cost_improvement = (previous_cost - current_cost) / previous_cost;
+
+        // 如果改进小于0.1%且迭代超过5次,提前停止
+        if (iteration > 5 && cost_improvement < 0.001) {
+            return true;
+        }
+
+        return false;
+    }
+};
+</code></pre>
+
+            <h2>8. 高级话题</h2>
+            <h3>8.1 障碍物避障整合</h3>
+            <pre><code class="language-cpp">class ObstacleAvoidanceMPC {
+private:
+    struct Obstacle {
+        Eigen::Vector2d position;
+        double radius;
+    };
+
+    std::vector<Obstacle> obstacles_;
+    double safety_margin_;
+
+public:
+    // 将障碍物约束加入优化问题
+    void add_obstacle_constraints() {
+        for (int k = 0; k < horizon_; ++k) {
+            for (const auto& obs : obstacles_) {
+                // 非线性约束: ||p_k - p_obs|| >= r_obs + r_robot + margin
+                // 可以用CBF (Control Barrier Function) 或软约束处理
+
+                Eigen::Vector2d pos_k(state_vars_(0, k), state_vars_(1, k));
+                double dist = (pos_k - obs.position).norm();
+                double min_dist = obs.radius + robot_radius_ + safety_margin_;
+
+                // 添加软约束惩罚
+                if (dist < min_dist) {
+                    double violation = min_dist - dist;
+                    cost += 1000.0 * violation * violation;
+                }
+            }
+        }
+    }
+
+    // 使用控制障碍函数(CBF)保证安全性
+    bool verify_safety_with_cbf(const RobotState& state,
+                                const ControlInput& u) {
+        for (const auto& obs : obstacles_) {
+            // CBF: h(x) = ||p - p_obs||² - (r_safe)²
+            double dx = state.x - obs.position.x();
+            double dy = state.y - obs.position.y();
+            double h = dx*dx + dy*dy - pow(obs.radius + safety_margin_, 2);
+
+            // CBF条件: ḣ(x) + α*h(x) >= 0
+            double h_dot = 2*dx*state.v*cos(state.theta) +
+                          2*dy*state.v*sin(state.theta);
+            double alpha = 1.0;
+
+            if (h_dot + alpha * h < 0) {
+                return false;  // 不安全
+            }
+        }
+        return true;
+    }
+};
+</code></pre>
+
+            <h3>8.2 鲁棒MPC</h3>
+            <pre><code class="language-cpp">// 考虑模型不确定性的鲁棒MPC
+class RobustMPC {
+private:
+    // 状态不确定性椭球表示
+    struct UncertaintyEllipsoid {
+        Eigen::MatrixXd P;  // 椭球矩阵
+        Eigen::VectorXd center;
+    };
+
+public:
+    // Tube MPC: 使用不变集管道保证鲁棒性
+    void compute_robust_trajectory() {
+        // 1. 设计局部控制器使误差有界
+        Eigen::MatrixXd K = design_ancillary_controller();
+
+        // 2. 计算最大不变集(RPI集)
+        UncertaintyEllipsoid rpi_set = compute_rpi_set(K);
+
+        // 3. MPC优化名义轨迹,实际系统在管道内
+        for (int k = 0; k < horizon_; ++k) {
+            // 名义状态约束需要收紧
+            // x_nom在 X ⊖ RPI_set 内
+            apply_tightened_constraints(k, rpi_set);
+        }
+
+        // 4. 实际控制: u = u_nom + K*(x - x_nom)
+    }
+
+    // 随机MPC: 处理随机扰动
+    void stochastic_mpc() {
+        // 使用概率约束
+        // P(x ∈ X) >= 1 - ε
+
+        // 通过场景法或机会约束转化为确定性约束
+        std::vector<Eigen::VectorXd> scenarios = sample_disturbances(100);
+
+        for (const auto& scenario : scenarios) {
+            // 每个场景满足约束
+            add_scenario_constraints(scenario);
+        }
+    }
+};
+</code></pre>
+
+            <h2>9. 性能对比与分析</h2>
+            <p>
+                在典型的移动机器人导航任务中,MPC与其他控制方法的对比:
+            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>控制方法</th>
+                        <th>轨迹跟踪误差(cm)</th>
+                        <th>计算时间(ms)</th>
+                        <th>约束处理</th>
+                        <th>最优性</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>PID控制</td>
+                        <td>8.5</td>
+                        <td>&lt;1</td>
+                        <td>困难</td>
+                        <td>局部</td>
+                    </tr>
+                    <tr>
+                        <td>Pure Pursuit</td>
+                        <td>6.2</td>
+                        <td>&lt;1</td>
+                        <td>困难</td>
+                        <td>否</td>
+                    </tr>
+                    <tr>
+                        <td>LQR</td>
+                        <td>4.8</td>
+                        <td>2</td>
+                        <td>较难</td>
+                        <td>局部</td>
+                    </tr>
+                    <tr>
+                        <td>线性MPC</td>
+                        <td>3.2</td>
+                        <td>8-15</td>
+                        <td>显式处理</td>
+                        <td>是</td>
+                    </tr>
+                    <tr>
+                        <td>非线性MPC</td>
+                        <td>2.1</td>
+                        <td>25-50</td>
+                        <td>显式处理</td>
+                        <td>是</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>9.1 MPC优势</h3>
+            <ul>
+                <li>✅ <strong>最优性</strong>: 在满足约束的前提下优化性能指标</li>
+                <li>✅ <strong>约束处理</strong>: 显式处理状态和控制约束</li>
+                <li>✅ <strong>前瞻性</strong>: 预测未来状态,提前规避问题</li>
+                <li>✅ <strong>多目标</strong>: 灵活的代价函数设计</li>
+                <li>✅ <strong>系统化</strong>: 基于优化理论,性能可保证</li>
+            </ul>
+
+            <h3>9.2 实际应用挑战</h3>
+            <ul>
+                <li>⚠️ <strong>计算复杂度</strong>: 需要实时求解优化问题</li>
+                <li>⚠️ <strong>模型依赖</strong>: 性能受模型精度影响</li>
+                <li>⚠️ <strong>参数调优</strong>: 需要仔细调整权重和时域</li>
+                <li>⚠️ <strong>局部最优</strong>: 非线性MPC可能陷入局部解</li>
+            </ul>
+
+            <h2>10. 总结与展望</h2>
+            <p>
+                本文系统地介绍了模型预测控制(MPC)在自主导航中的应用,涵盖了从理论基础、数学建模到工程实现的完整流程。MPC作为一种基于优化的控制方法,能够处理复杂约束并实现多目标优化,在移动机器人控制中展现出优异的性能。
+            </p>
+
+            <h3>10.1 核心要点回顾</h3>
+            <ul>
+                <li><strong>滚动优化</strong>: 通过滚动时域策略实现反馈控制</li>
+                <li><strong>模型预测</strong>: 基于系统模型预测未来状态</li>
+                <li><strong>约束处理</strong>: 在优化问题中显式处理各类约束</li>
+                <li><strong>实时求解</strong>: 使用高效求解器保证实时性</li>
+                <li><strong>参数调优</strong>: 系统化的参数调优方法</li>
+            </ul>
+
+            <h3>10.2 未来研究方向</h3>
+            <p>
+                MPC在移动机器人领域仍有广阔的发展空间:
+            </p>
+            <ul>
+                <li><strong>学习型MPC</strong>: 结合机器学习改进模型和代价函数</li>
+                <li><strong>分布式MPC</strong>: 多机器人协同控制</li>
+                <li><strong>自适应MPC</strong>: 在线辨识和自适应调整</li>
+                <li><strong>显式MPC</strong>: 离线求解降低在线计算负担</li>
+                <li><strong>端到端学习</strong>: 深度学习近似MPC控制律</li>
+            </ul>
+
+            <h3>10.3 工程实践建议</h3>
+            <ol>
+                <li>从简单的线性MPC开始,逐步过渡到非线性MPC</li>
+                <li>合理选择预测时域,平衡性能和实时性</li>
+                <li>使用热启动加速求解过程</li>
+                <li>设计分层控制架构,将MPC作为中层控制器</li>
+                <li>充分利用仿真环境进行参数调优</li>
+                <li>实车测试中逐步增加约束和优化目标</li>
+            </ol>
+
+            <h2>11. 参考资料</h2>
+            <ul>
+                <li>Camacho, E. F., & Alba, C. B. (2013). Model Predictive Control. Springer Science & Business Media</li>
+                <li>Rawlings, J. B., Mayne, D. Q., & Diehl, M. (2017). Model Predictive Control: Theory, Computation, and Design</li>
+                <li>Borrelli, F., Bemporad, A., & Morari, M. (2017). Predictive Control for Linear and Hybrid Systems</li>
+                <li>Grüne, L., & Pannek, J. (2017). Nonlinear Model Predictive Control: Theory and Algorithms</li>
+                <li>Kong, J., et al. (2015). Kinematic and dynamic vehicle models for autonomous driving control design</li>
+                <li>Verschueren, R., et al. (2018). acados—a modular open-source framework for fast embedded optimal control</li>
+            </ul>
+
+            <h3>开源工具推荐</h3>
+            <ul>
+                <li><strong>CasADi</strong>: 符号化自动微分和非线性优化框架</li>
+                <li><strong>qpOASES</strong>: 实时QP求解器</li>
+                <li><strong>ACADO</strong>: 自动控制和动态优化工具包</li>
+                <li><strong>FORCES Pro</strong>: 商业级高性能MPC求解器</li>
+                <li><strong>do-mpc</strong>: Python实现的MPC框架</li>
+            </ul>
+        </section>
+
+        <div class="post-footer">
+            <div class="post-tags">
+                <span class="tag">运动控制</span>
+                <span class="tag">MPC</span>
+                <span class="tag">ROS</span>
+                <span class="tag">自主导航</span>
+                <span class="tag">轨迹跟踪</span>
+            </div>
+            <div class="post-nav">
+                <a href="../index.html" class="btn-back">← 返回首页</a>
+            </div>
+        </div>
+    </article>
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="back-to-top">↑</button>
+
+    <!-- JavaScript -->
+    <script src="../js/main.js"></script>
+</body>
+</html>

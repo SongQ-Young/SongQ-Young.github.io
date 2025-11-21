@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="深入解析ROS2导航框架Nav2的架构设计、核心插件、自定义规划器开发以及仿真环境搭建，帮助开发者快速掌握Nav2的使用和定制">
+    <meta name="keywords" content="ROS2, Nav2, 导航框架, 路径规划, 行为树, 插件开发">
+    <title>ROS2 Navigation Stack深度解析 - SongQ-Young</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="nav-brand">SongQ-Young</a>
+            <ul class="nav-menu">
+                <li><a href="../index.html" class="nav-link">首页</a></li>
+                <li><a href="../projects.html" class="nav-link">项目</a></li>
+                <li><a href="../archive.html" class="nav-link">归档</a></li>
+                <li><a href="../tags.html" class="nav-link">标签</a></li>
+                <li><a href="../about.html" class="nav-link">关于</a></li>
+                <li><button id="theme-toggle" class="theme-toggle">🌙 深色</button></li>
+            </ul>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </nav>
+
+    <!-- 文章内容 -->
+    <article class="container">
+        <header class="post-header">
+            <h1>ROS2 Navigation Stack深度解析</h1>
+            <div class="post-meta">
+                <span class="post-date">📅 2024-10-30</span>
+                <span class="post-author">✍️ SongQ-Young</span>
+                <span class="post-category">🏷️ 导航框架</span>
+            </div>
+            <div class="tags">
+                <span class="tag">ROS2</span>
+                <span class="tag">导航</span>
+                <span class="tag">框架</span>
+            </div>
+        </header>
+
+        <section class="post-content">
+            <h2>1. 引言</h2>
+            <p>
+                ROS2 Navigation Stack（Nav2）是ROS2生态系统中用于移动机器人自主导航的核心框架。相比ROS1的导航栈，Nav2在架构设计、插件系统、行为树集成等方面进行了全面升级。本文将深入解析Nav2的架构设计、核心组件、插件开发以及实战应用，帮助开发者快速掌握Nav2的使用和定制。
+            </p>
+            <p>
+                Nav2基于行为树（Behavior Tree）架构，提供了高度模块化和可扩展的导航能力。无论是简单的点到点导航，还是复杂的多目标任务规划，Nav2都能提供强大的支持。
+            </p>
+
+            <h2>2. Nav2架构概览</h2>
+            <h3>2.1 核心组件</h3>
+            <p>
+                Nav2由多个功能模块组成，每个模块负责特定的导航任务：
+            </p>
+            <ul>
+                <li><strong>BT Navigator</strong>: 基于行为树的任务管理器，协调各个导航模块</li>
+                <li><strong>Planner Server</strong>: 全局路径规划服务，生成从起点到终点的全局路径</li>
+                <li><strong>Controller Server</strong>: 局部路径跟踪控制器，实时跟踪全局路径</li>
+                <li><strong>Recovery Server</strong>: 恢复行为管理器，处理机器人被困等异常情况</li>
+                <li><strong>Waypoint Follower</strong>: 路点跟随器，支持多目标点导航</li>
+                <li><strong>Lifecycle Manager</strong>: 生命周期管理器，管理所有导航节点的启动和关闭</li>
+                <li><strong>AMCL</strong>: 自适应蒙特卡洛定位算法，用于机器人定位</li>
+                <li><strong>Map Server</strong>: 地图服务器，提供静态地图数据</li>
+                <li><strong>Costmap 2D</strong>: 代价地图生成器，融合多种传感器数据</li>
+            </ul>
+
+            <h3>2.2 系统架构图</h3>
+            <pre><code class="language-text">┌─────────────────────────────────────────────────────────┐
+│                    BT Navigator                         │
+│                  (Behavior Tree)                        │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+        ┌─────────────┼─────────────┐
+        │             │             │
+    ┌───▼────┐   ┌───▼────┐   ┌───▼────┐
+    │Planner │   │Control │   │Recovery│
+    │Server  │   │Server  │   │Server  │
+    └───┬────┘   └───┬────┘   └───┬────┘
+        │            │            │
+    ┌───▼────────────▼────────────▼────┐
+    │       Costmap 2D (Local/Global)  │
+    └───────────┬──────────────────────┘
+                │
+        ┌───────┴───────┐
+    ┌───▼────┐      ┌───▼────┐
+    │  AMCL  │      │  Map   │
+    │(定位)  │      │ Server │
+    └────────┘      └────────┘
+</code></pre>
+
+            <h3>2.3 插件架构</h3>
+            <p>
+                Nav2采用插件化设计，支持动态加载不同的算法实现：
+            </p>
+            <pre><code class="language-yaml"># nav2_params.yaml 插件配置示例
+planner_server:
+  ros__parameters:
+    expected_planner_frequency: 20.0
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner/NavfnPlanner"
+      tolerance: 0.5
+      use_astar: true
+      allow_unknown: true
+
+controller_server:
+  ros__parameters:
+    controller_frequency: 20.0
+    controller_plugins: ["FollowPath"]
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      min_vel_x: 0.0
+      max_vel_x: 0.5
+      max_vel_theta: 1.0
+      min_speed_xy: 0.0
+      max_speed_xy: 0.5
+      acc_lim_x: 2.5
+      acc_lim_theta: 3.2
+      decel_lim_x: -2.5
+      decel_lim_theta: -3.2
+</code></pre>
+
+            <h2>3. 行为树（Behavior Tree）</h2>
+            <h3>3.1 行为树基础</h3>
+            <p>
+                Nav2使用BehaviorTree.CPP库实现行为树功能。行为树是一种层次化的任务控制结构，由不同类型的节点组成：
+            </p>
+            <ul>
+                <li><strong>Action节点</strong>: 执行具体动作（如规划路径、移动机器人）</li>
+                <li><strong>Condition节点</strong>: 判断条件（如目标是否到达、路径是否有效）</li>
+                <li><strong>Control节点</strong>: 控制执行流程（Sequence、Fallback、Parallel等）</li>
+                <li><strong>Decorator节点</strong>: 修饰子节点行为（如重试、超时控制）</li>
+            </ul>
+
+            <h3>3.2 默认导航行为树</h3>
+            <p>
+                Nav2提供了一个默认的导航行为树，实现了基本的导航流程：
+            </p>
+            <pre><code class="language-xml">&lt;!-- navigate_to_pose_w_replanning.xml --&gt;
+&lt;root main_tree_to_execute="MainTree"&gt;
+    &lt;BehaviorTree ID="MainTree"&gt;
+        &lt;RecoveryNode number_of_retries="6" name="NavigateRecovery"&gt;
+            &lt;PipelineSequence name="NavigateWithReplanning"&gt;
+                &lt;RateController hz="1.0"&gt;
+                    &lt;RecoveryNode number_of_retries="1" name="ComputePathToPose"&gt;
+                        &lt;ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/&gt;
+                        &lt;ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/&gt;
+                    &lt;/RecoveryNode&gt;
+                &lt;/RateController&gt;
+                &lt;RecoveryNode number_of_retries="1" name="FollowPath"&gt;
+                    &lt;FollowPath path="{path}" controller_id="FollowPath"/&gt;
+                    &lt;ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/&gt;
+                &lt;/RecoveryNode&gt;
+            &lt;/PipelineSequence&gt;
+            &lt;RecoversSequence&gt;
+                &lt;ClearEntireCostmap name="ClearLocalCostmap-Recovery" service_name="local_costmap/clear_entirely_local_costmap"/&gt;
+                &lt;ClearEntireCostmap name="ClearGlobalCostmap-Recovery" service_name="global_costmap/clear_entirely_global_costmap"/&gt;
+                &lt;Spin spin_dist="1.57"/&gt;
+                &lt;Wait wait_duration="5"/&gt;
+                &lt;BackUp backup_dist="0.30" backup_speed="0.05"/&gt;
+            &lt;/RecoversSequence&gt;
+        &lt;/RecoveryNode&gt;
+    &lt;/BehaviorTree&gt;
+&lt;/root&gt;
+</code></pre>
+
+            <h3>3.3 自定义行为树节点</h3>
+            <p>
+                创建自定义行为树节点的示例：
+            </p>
+            <pre><code class="language-cpp">// custom_action_node.hpp
+#ifndef CUSTOM_ACTION_NODE_HPP_
+#define CUSTOM_ACTION_NODE_HPP_
+
+#include &lt;string&gt;
+#include "rclcpp/rclcpp.hpp"
+#include "behaviortree_cpp_v3/action_node.h"
+
+namespace custom_bt_nodes
+{
+
+class CustomActionNode : public BT::ActionNodeBase
+{
+public:
+  CustomActionNode(
+    const std::string & xml_tag_name,
+    const BT::NodeConfiguration & conf)
+  : BT::ActionNodeBase(xml_tag_name, conf)
+  {
+    node_ = config().blackboard->get&lt;rclcpp::Node::SharedPtr&gt;("node");
+  }
+
+  static BT::PortsList providedPorts()
+  {
+    return {
+      BT::InputPort&lt;std::string&gt;("input_param", "输入参数"),
+      BT::OutputPort&lt;std::string&gt;("output_result", "输出结果")
+    };
+  }
+
+  BT::NodeStatus tick() override
+  {
+    std::string input;
+    if (!getInput&lt;std::string&gt;("input_param", input)) {
+      RCLCPP_ERROR(node_->get_logger(), "输入参数缺失");
+      return BT::NodeStatus::FAILURE;
+    }
+
+    // 执行自定义逻辑
+    RCLCPP_INFO(node_->get_logger(), "执行自定义动作: %s", input.c_str());
+
+    // 模拟处理
+    std::string result = "处理结果: " + input;
+    setOutput("output_result", result);
+
+    return BT::NodeStatus::SUCCESS;
+  }
+
+  void halt() override
+  {
+    RCLCPP_INFO(node_->get_logger(), "中止自定义动作");
+  }
+
+private:
+  rclcpp::Node::SharedPtr node_;
+};
+
+}  // namespace custom_bt_nodes
+
+#endif  // CUSTOM_ACTION_NODE_HPP_
+</code></pre>
+
+            <h2>4. 全局路径规划器</h2>
+            <h3>4.1 内置规划器</h3>
+            <p>
+                Nav2提供了多种全局路径规划算法：
+            </p>
+            <ul>
+                <li><strong>NavFn Planner</strong>: 基于Dijkstra或A*算法的规划器</li>
+                <li><strong>Smac Planner</strong>: 基于State Lattice的混合A*规划器，支持多种运动模型</li>
+                <li><strong>Theta* Planner</strong>: 基于Theta*算法，生成更平滑的路径</li>
+            </ul>
+
+            <h3>4.2 Smac Planner配置</h3>
+            <pre><code class="language-yaml">planner_server:
+  ros__parameters:
+    planner_plugins: ["SmacHybrid"]
+    SmacHybrid:
+      plugin: "nav2_smac_planner/SmacPlannerHybrid"
+      tolerance: 0.5                    # 目标容差 (m)
+      downsample_costmap: false         # 是否降采样代价地图
+      downsampling_factor: 1            # 降采样因子
+      allow_unknown: false              # 是否允许穿越未知区域
+      max_iterations: 1000000           # 最大迭代次数
+      max_planning_time: 5.0            # 最大规划时间 (s)
+      motion_model_for_search: "DUBIN"  # 运动模型: DUBIN, REEDS_SHEPP, ACKERMANN
+      angle_quantization_bins: 72       # 角度量化bins
+      analytic_expansion_ratio: 3.5     # 解析扩展比率
+      analytic_expansion_max_length: 3.0 # 解析扩展最大长度
+      minimum_turning_radius: 0.4       # 最小转弯半径 (m)
+      reverse_penalty: 2.0              # 倒车惩罚
+      change_penalty: 0.05              # 方向改变惩罚
+      non_straight_penalty: 1.05        # 非直线运动惩罚
+      cost_penalty: 2.0                 # 代价惩罚系数
+      retrospective_penalty: 0.015      # 回溯惩罚
+      lookup_table_size: 20.0           # 查找表大小
+      cache_obstacle_heuristic: false   # 是否缓存障碍物启发式
+      smooth_path: true                 # 是否平滑路径
+      smoother:
+        max_iterations: 1000
+        w_smooth: 0.3
+        w_data: 0.2
+        tolerance: 1e-10
+</code></pre>
+
+            <h3>4.3 自定义规划器插件</h3>
+            <pre><code class="language-cpp">// custom_planner.hpp
+#ifndef CUSTOM_PLANNER_HPP_
+#define CUSTOM_PLANNER_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+#include "nav2_core/global_planner.hpp"
+#include "nav_msgs/msg/path.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+
+namespace custom_planner
+{
+
+class CustomPlanner : public nav2_core::GlobalPlanner
+{
+public:
+  CustomPlanner() = default;
+  ~CustomPlanner() override = default;
+
+  // 配置插件
+  void configure(
+    const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
+    std::string name,
+    std::shared_ptr&lt;tf2_ros::Buffer&gt; tf,
+    std::shared_ptr&lt;nav2_costmap_2d::Costmap2DROS&gt; costmap_ros) override
+  {
+    node_ = parent.lock();
+    name_ = name;
+    tf_ = tf;
+    costmap_ros_ = costmap_ros;
+    costmap_ = costmap_ros_->getCostmap();
+
+    RCLCPP_INFO(node_->get_logger(), "配置自定义规划器: %s", name_.c_str());
+
+    // 声明和获取参数
+    nav2_util::declare_parameter_if_not_declared(
+      node_, name_ + ".interpolation_resolution", rclcpp::ParameterValue(0.1));
+    node_->get_parameter(name_ + ".interpolation_resolution", interpolation_resolution_);
+  }
+
+  // 激活插件
+  void activate() override
+  {
+    RCLCPP_INFO(node_->get_logger(), "激活自定义规划器");
+  }
+
+  // 失活插件
+  void deactivate() override
+  {
+    RCLCPP_INFO(node_->get_logger(), "失活自定义规划器");
+  }
+
+  // 清理插件
+  void cleanup() override
+  {
+    RCLCPP_INFO(node_->get_logger(), "清理自定义规划器");
+  }
+
+  // 创建规划路径
+  nav_msgs::msg::Path createPlan(
+    const geometry_msgs::msg::PoseStamped & start,
+    const geometry_msgs::msg::PoseStamped & goal) override
+  {
+    RCLCPP_INFO(node_->get_logger(), "开始规划路径");
+
+    nav_msgs::msg::Path path;
+    path.header.frame_id = costmap_ros_->getGlobalFrameID();
+    path.header.stamp = node_->now();
+
+    // 实现自定义规划算法
+    // 这里以直线插值为简单示例
+    double dx = goal.pose.position.x - start.pose.position.x;
+    double dy = goal.pose.position.y - start.pose.position.y;
+    double distance = std::hypot(dx, dy);
+    int num_points = static_cast&lt;int&gt;(distance / interpolation_resolution_);
+
+    for (int i = 0; i &lt;= num_points; ++i) {
+      double ratio = static_cast&lt;double&gt;(i) / num_points;
+      geometry_msgs::msg::PoseStamped pose;
+      pose.header = path.header;
+      pose.pose.position.x = start.pose.position.x + dx * ratio;
+      pose.pose.position.y = start.pose.position.y + dy * ratio;
+      pose.pose.position.z = 0.0;
+      pose.pose.orientation = goal.pose.orientation;
+
+      // 检查是否碰撞
+      unsigned int mx, my;
+      if (costmap_-&gt;worldToMap(pose.pose.position.x, pose.pose.position.y, mx, my)) {
+        if (costmap_-&gt;getCost(mx, my) &lt; nav2_costmap_2d::LETHAL_OBSTACLE) {
+          path.poses.push_back(pose);
+        } else {
+          RCLCPP_WARN(node_->get_logger(), "路径点碰撞障碍物");
+          return nav_msgs::msg::Path();  // 返回空路径
+        }
+      }
+    }
+
+    RCLCPP_INFO(node_->get_logger(), "规划完成，路径点数: %zu", path.poses.size());
+    return path;
+  }
+
+private:
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
+  std::string name_;
+  std::shared_ptr&lt;tf2_ros::Buffer&gt; tf_;
+  std::shared_ptr&lt;nav2_costmap_2d::Costmap2DROS&gt; costmap_ros_;
+  nav2_costmap_2d::Costmap2D * costmap_;
+  double interpolation_resolution_;
+};
+
+}  // namespace custom_planner
+
+#endif  // CUSTOM_PLANNER_HPP_
+</code></pre>
+
+            <h2>5. 局部控制器</h2>
+            <h3>5.1 DWB控制器</h3>
+            <p>
+                Dynamic Window Approach (DWB) 是Nav2默认的局部控制器，通过采样速度空间来生成最优控制指令：
+            </p>
+            <pre><code class="language-yaml">controller_server:
+  ros__parameters:
+    controller_frequency: 20.0
+    min_x_velocity_threshold: 0.001
+    min_y_velocity_threshold: 0.5
+    min_theta_velocity_threshold: 0.001
+    failure_tolerance: 0.3
+    progress_checker_plugin: "progress_checker"
+    goal_checker_plugins: ["general_goal_checker"]
+    controller_plugins: ["FollowPath"]
+
+    # Progress checker parameters
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.5
+      movement_time_allowance: 10.0
+
+    # Goal checker parameters
+    general_goal_checker:
+      stateful: True
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.25
+
+    # DWB parameters
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      debug_trajectory_details: True
+      min_vel_x: 0.0
+      min_vel_y: 0.0
+      max_vel_x: 0.5
+      max_vel_y: 0.0
+      max_vel_theta: 1.0
+      min_speed_xy: 0.0
+      max_speed_xy: 0.5
+      min_speed_theta: 0.0
+      acc_lim_x: 2.5
+      acc_lim_y: 0.0
+      acc_lim_theta: 3.2
+      decel_lim_x: -2.5
+      decel_lim_y: 0.0
+      decel_lim_theta: -3.2
+      vx_samples: 20
+      vy_samples: 5
+      vtheta_samples: 20
+      sim_time: 1.7
+      linear_granularity: 0.05
+      angular_granularity: 0.025
+      transform_tolerance: 0.2
+      xy_goal_tolerance: 0.25
+      trans_stopped_velocity: 0.25
+      short_circuit_trajectory_evaluation: True
+      stateful: True
+      critics: ["RotateToGoal", "Oscillation", "BaseObstacle", "GoalAlign", "PathAlign", "PathDist", "GoalDist"]
+      BaseObstacle.scale: 0.02
+      PathAlign.scale: 32.0
+      PathAlign.forward_point_distance: 0.1
+      GoalAlign.scale: 24.0
+      GoalAlign.forward_point_distance: 0.1
+      PathDist.scale: 32.0
+      GoalDist.scale: 24.0
+      RotateToGoal.scale: 32.0
+      RotateToGoal.slowing_factor: 5.0
+      RotateToGoal.lookahead_time: -1.0
+</code></pre>
+
+            <h3>5.2 Regulated Pure Pursuit控制器</h3>
+            <p>
+                Pure Pursuit是一种基于几何的路径跟踪算法，适合全向机器人和Ackermann转向机器人：
+            </p>
+            <pre><code class="language-yaml">controller_server:
+  ros__parameters:
+    controller_plugins: ["FollowPath"]
+    FollowPath:
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+      desired_linear_vel: 0.5
+      lookahead_dist: 0.6
+      min_lookahead_dist: 0.3
+      max_lookahead_dist: 0.9
+      lookahead_time: 1.5
+      rotate_to_heading_angular_vel: 1.8
+      transform_tolerance: 0.1
+      use_velocity_scaled_lookahead_dist: false
+      min_approach_linear_velocity: 0.05
+      approach_velocity_scaling_dist: 0.6
+      use_collision_detection: true
+      max_allowed_time_to_collision_up_to_carrot: 1.0
+      use_regulated_linear_velocity_scaling: true
+      use_cost_regulated_linear_velocity_scaling: false
+      regulated_linear_scaling_min_radius: 0.9
+      regulated_linear_scaling_min_speed: 0.25
+      use_rotate_to_heading: true
+      allow_reversing: false
+      rotate_to_heading_min_angle: 0.785
+      max_angular_accel: 3.2
+      max_robot_pose_search_dist: 10.0
+      use_interpolation: false
+</code></pre>
+
+            <h3>5.3 自定义控制器插件</h3>
+            <pre><code class="language-cpp">// custom_controller.hpp
+#ifndef CUSTOM_CONTROLLER_HPP_
+#define CUSTOM_CONTROLLER_HPP_
+
+#include "rclcpp/rclcpp.hpp"
+#include "nav2_core/controller.hpp"
+#include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "nav_msgs/msg/path.hpp"
+
+namespace custom_controller
+{
+
+class CustomController : public nav2_core::Controller
+{
+public:
+  CustomController() = default;
+  ~CustomController() override = default;
+
+  void configure(
+    const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
+    std::string name,
+    std::shared_ptr&lt;tf2_ros::Buffer&gt; tf,
+    std::shared_ptr&lt;nav2_costmap_2d::Costmap2DROS&gt; costmap_ros) override
+  {
+    node_ = parent.lock();
+    name_ = name;
+    tf_ = tf;
+    costmap_ros_ = costmap_ros;
+
+    // 声明参数
+    nav2_util::declare_parameter_if_not_declared(
+      node_, name_ + ".max_linear_vel", rclcpp::ParameterValue(0.5));
+    nav2_util::declare_parameter_if_not_declared(
+      node_, name_ + ".max_angular_vel", rclcpp::ParameterValue(1.0));
+    nav2_util::declare_parameter_if_not_declared(
+      node_, name_ + ".lookahead_distance", rclcpp::ParameterValue(0.5));
+
+    node_->get_parameter(name_ + ".max_linear_vel", max_linear_vel_);
+    node_->get_parameter(name_ + ".max_angular_vel", max_angular_vel_);
+    node_->get_parameter(name_ + ".lookahead_distance", lookahead_distance_);
+
+    RCLCPP_INFO(node_->get_logger(), "配置自定义控制器: %s", name_.c_str());
+  }
+
+  void activate() override
+  {
+    RCLCPP_INFO(node_->get_logger(), "激活自定义控制器");
+  }
+
+  void deactivate() override
+  {
+    RCLCPP_INFO(node_->get_logger(), "失活自定义控制器");
+  }
+
+  void cleanup() override
+  {
+    RCLCPP_INFO(node_->get_logger(), "清理自定义控制器");
+  }
+
+  void setPlan(const nav_msgs::msg::Path & path) override
+  {
+    global_plan_ = path;
+  }
+
+  geometry_msgs::msg::TwistStamped computeVelocityCommands(
+    const geometry_msgs::msg::PoseStamped & pose,
+    const geometry_msgs::msg::Twist & velocity,
+    nav2_core::GoalChecker * goal_checker) override
+  {
+    geometry_msgs::msg::TwistStamped cmd_vel;
+    cmd_vel.header.frame_id = pose.header.frame_id;
+    cmd_vel.header.stamp = node_->now();
+
+    if (global_plan_.poses.empty()) {
+      RCLCPP_WARN(node_->get_logger(), "全局路径为空");
+      return cmd_vel;
+    }
+
+    // 寻找前视点
+    geometry_msgs::msg::PoseStamped lookahead_point = findLookaheadPoint(pose);
+
+    // 计算到前视点的距离和角度
+    double dx = lookahead_point.pose.position.x - pose.pose.position.x;
+    double dy = lookahead_point.pose.position.y - pose.pose.position.y;
+    double distance = std::hypot(dx, dy);
+
+    // 计算目标角度
+    double target_angle = std::atan2(dy, dx);
+
+    // 获取当前朝向
+    tf2::Quaternion q(
+      pose.pose.orientation.x,
+      pose.pose.orientation.y,
+      pose.pose.orientation.z,
+      pose.pose.orientation.w);
+    tf2::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
+
+    // 计算角度误差
+    double angle_error = angles::shortest_angular_distance(yaw, target_angle);
+
+    // Pure Pursuit控制律
+    if (std::abs(angle_error) &gt; 0.1) {
+      // 先旋转对准目标
+      cmd_vel.twist.linear.x = 0.0;
+      cmd_vel.twist.angular.z = std::clamp(
+        angle_error * 2.0, -max_angular_vel_, max_angular_vel_);
+    } else {
+      // 前进
+      cmd_vel.twist.linear.x = std::min(max_linear_vel_, distance);
+      cmd_vel.twist.angular.z = std::clamp(
+        angle_error * 1.0, -max_angular_vel_, max_angular_vel_);
+    }
+
+    return cmd_vel;
+  }
+
+  void setSpeedLimit(const double & speed_limit, const bool & percentage) override
+  {
+    if (percentage) {
+      max_linear_vel_ = max_linear_vel_ * speed_limit / 100.0;
+    } else {
+      max_linear_vel_ = speed_limit;
+    }
+  }
+
+private:
+  geometry_msgs::msg::PoseStamped findLookaheadPoint(
+    const geometry_msgs::msg::PoseStamped & pose)
+  {
+    // 在全局路径上寻找距离当前位置lookahead_distance_的点
+    double min_dist = std::numeric_limits&lt;double&gt;::max();
+    size_t closest_idx = 0;
+
+    for (size_t i = 0; i &lt; global_plan_.poses.size(); ++i) {
+      double dx = global_plan_.poses[i].pose.position.x - pose.pose.position.x;
+      double dy = global_plan_.poses[i].pose.position.y - pose.pose.position.y;
+      double dist = std::hypot(dx, dy);
+
+      if (dist &lt; min_dist) {
+        min_dist = dist;
+        closest_idx = i;
+      }
+    }
+
+    // 从最近点开始向前寻找lookahead点
+    for (size_t i = closest_idx; i &lt; global_plan_.poses.size(); ++i) {
+      double dx = global_plan_.poses[i].pose.position.x - pose.pose.position.x;
+      double dy = global_plan_.poses[i].pose.position.y - pose.pose.position.y;
+      double dist = std::hypot(dx, dy);
+
+      if (dist &gt;= lookahead_distance_) {
+        return global_plan_.poses[i];
+      }
+    }
+
+    // 如果没找到，返回路径终点
+    return global_plan_.poses.back();
+  }
+
+  rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
+  std::string name_;
+  std::shared_ptr&lt;tf2_ros::Buffer&gt; tf_;
+  std::shared_ptr&lt;nav2_costmap_2d::Costmap2DROS&gt; costmap_ros_;
+  nav_msgs::msg::Path global_plan_;
+
+  double max_linear_vel_;
+  double max_angular_vel_;
+  double lookahead_distance_;
+};
+
+}  // namespace custom_controller
+
+#endif  // CUSTOM_CONTROLLER_HPP_
+</code></pre>
+
+            <h2>6. 自定义插件开发</h2>
+            <h3>6.1 插件导出配置</h3>
+            <p>
+                创建pluginlib描述文件，让Nav2能够发现和加载你的插件：
+            </p>
+            <pre><code class="language-xml">&lt;!-- custom_nav2_plugins.xml --&gt;
+&lt;library path="custom_nav2_plugins"&gt;
+  &lt;class type="custom_planner::CustomPlanner" base_class_type="nav2_core::GlobalPlanner"&gt;
+    &lt;description&gt;自定义全局路径规划器&lt;/description&gt;
+  &lt;/class&gt;
+
+  &lt;class type="custom_controller::CustomController" base_class_type="nav2_core::Controller"&gt;
+    &lt;description&gt;自定义局部控制器&lt;/description&gt;
+  &lt;/class&gt;
+
+  &lt;class type="custom_bt_nodes::CustomActionNode" base_class_type="BT::ActionNodeBase"&gt;
+    &lt;description&gt;自定义行为树动作节点&lt;/description&gt;
+  &lt;/class&gt;
+&lt;/library&gt;
+</code></pre>
+
+            <h3>6.2 CMakeLists.txt配置</h3>
+            <pre><code class="language-cmake">cmake_minimum_required(VERSION 3.5)
+project(custom_nav2_plugins)
+
+# 查找依赖
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
+find_package(nav2_core REQUIRED)
+find_package(nav2_costmap_2d REQUIRED)
+find_package(nav2_util REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(pluginlib REQUIRED)
+find_package(behaviortree_cpp_v3 REQUIRED)
+
+set(dependencies
+  rclcpp
+  rclcpp_lifecycle
+  nav2_core
+  nav2_costmap_2d
+  nav2_util
+  nav_msgs
+  geometry_msgs
+  tf2_ros
+  pluginlib
+  behaviortree_cpp_v3
+)
+
+# 创建插件库
+add_library(${PROJECT_NAME} SHARED
+  src/custom_planner.cpp
+  src/custom_controller.cpp
+  src/custom_action_node.cpp
+)
+
+target_include_directories(${PROJECT_NAME}
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+ament_target_dependencies(${PROJECT_NAME} ${dependencies})
+
+# 安装
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY include/
+  DESTINATION include/
+)
+
+install(FILES custom_nav2_plugins.xml
+  DESTINATION share/${PROJECT_NAME}
+)
+
+# 导出插件
+pluginlib_export_plugin_description_file(nav2_core custom_nav2_plugins.xml)
+pluginlib_export_plugin_description_file(behaviortree_cpp_v3 custom_nav2_plugins.xml)
+
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
+ament_export_dependencies(${dependencies})
+
+ament_package()
+</code></pre>
+
+            <h3>6.3 package.xml配置</h3>
+            <pre><code class="language-xml">&lt;?xml version="1.0"?&gt;
+&lt;?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?&gt;
+&lt;package format="3"&gt;
+  &lt;name&gt;custom_nav2_plugins&lt;/name&gt;
+  &lt;version&gt;1.0.0&lt;/version&gt;
+  &lt;description&gt;自定义Nav2插件包&lt;/description&gt;
+  &lt;maintainer email="your@email.com"&gt;Your Name&lt;/maintainer&gt;
+  &lt;license&gt;Apache-2.0&lt;/license&gt;
+
+  &lt;buildtool_depend&gt;ament_cmake&lt;/buildtool_depend&gt;
+
+  &lt;depend&gt;rclcpp&lt;/depend&gt;
+  &lt;depend&gt;rclcpp_lifecycle&lt;/depend&gt;
+  &lt;depend&gt;nav2_core&lt;/depend&gt;
+  &lt;depend&gt;nav2_costmap_2d&lt;/depend&gt;
+  &lt;depend&gt;nav2_util&lt;/depend&gt;
+  &lt;depend&gt;nav_msgs&lt;/depend&gt;
+  &lt;depend&gt;geometry_msgs&lt;/depend&gt;
+  &lt;depend&gt;tf2_ros&lt;/depend&gt;
+  &lt;depend&gt;pluginlib&lt;/depend&gt;
+  &lt;depend&gt;behaviortree_cpp_v3&lt;/depend&gt;
+
+  &lt;export&gt;
+    &lt;build_type&gt;ament_cmake&lt;/build_type&gt;
+    &lt;nav2_core plugin="${prefix}/custom_nav2_plugins.xml"/&gt;
+    &lt;behaviortree_cpp_v3 plugin="${prefix}/custom_nav2_plugins.xml"/&gt;
+  &lt;/export&gt;
+&lt;/package&gt;
+</code></pre>
+
+            <h2>7. Gazebo仿真环境搭建</h2>
+            <h3>7.1 仿真环境配置</h3>
+            <p>
+                创建完整的Gazebo仿真环境来测试Nav2导航功能：
+            </p>
+            <pre><code class="language-xml">&lt;!-- turtlebot3_world.launch.py --&gt;
+import os
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
+
+def generate_launch_description():
+    # 获取包路径
+    pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
+    pkg_turtlebot3_gazebo = get_package_share_directory('turtlebot3_gazebo')
+
+    # World文件路径
+    world = os.path.join(
+        pkg_turtlebot3_gazebo,
+        'worlds',
+        'turtlebot3_world.world'
+    )
+
+    # Gazebo服务器
+    gzserver_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_gazebo_ros, 'launch', 'gzserver.launch.py')
+        ),
+        launch_arguments={'world': world}.items()
+    )
+
+    # Gazebo客户端
+    gzclient_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_gazebo_ros, 'launch', 'gzclient.launch.py')
+        )
+    )
+
+    # 机器人状态发布
+    robot_state_publisher_cmd = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        output='screen',
+        parameters=[{'use_sim_time': True}]
+    )
+
+    # 生成机器人
+    spawn_turtlebot_cmd = Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        arguments=[
+            '-entity', 'turtlebot3',
+            '-topic', 'robot_description',
+            '-x', '0.0',
+            '-y', '0.0',
+            '-z', '0.01'
+        ],
+        output='screen'
+    )
+
+    ld = LaunchDescription()
+    ld.add_action(gzserver_cmd)
+    ld.add_action(gzclient_cmd)
+    ld.add_action(robot_state_publisher_cmd)
+    ld.add_action(spawn_turtlebot_cmd)
+
+    return ld
+</code></pre>
+
+            <h3>7.2 Nav2启动配置</h3>
+            <pre><code class="language-python"># nav2_launch.py
+import os
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
+from nav2_common.launch import RewrittenYaml
+
+def generate_launch_description():
+    # 获取包路径
+    bringup_dir = get_package_share_directory('nav2_bringup')
+
+    # 声明参数
+    namespace = LaunchConfiguration('namespace')
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    autostart = LaunchConfiguration('autostart')
+    params_file = LaunchConfiguration('params_file')
+    map_yaml_file = LaunchConfiguration('map')
+
+    # 参数声明
+    declare_namespace_cmd = DeclareLaunchArgument(
+        'namespace',
+        default_value='',
+        description='顶层命名空间')
+
+    declare_use_sim_time_cmd = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='true',
+        description='使用仿真时间')
+
+    declare_autostart_cmd = DeclareLaunchArgument(
+        'autostart',
+        default_value='true',
+        description='自动启动生命周期节点')
+
+    declare_params_file_cmd = DeclareLaunchArgument(
+        'params_file',
+        default_value=os.path.join(bringup_dir, 'params', 'nav2_params.yaml'),
+        description='Nav2参数文件完整路径')
+
+    declare_map_yaml_cmd = DeclareLaunchArgument(
+        'map',
+        default_value=os.path.join(bringup_dir, 'maps', 'map.yaml'),
+        description='地图文件完整路径')
+
+    # Map Server
+    start_map_server_cmd = Node(
+        package='nav2_map_server',
+        executable='map_server',
+        name='map_server',
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time},
+                    {'yaml_filename': map_yaml_file}])
+
+    # AMCL
+    start_amcl_cmd = Node(
+        package='nav2_amcl',
+        executable='amcl',
+        name='amcl',
+        output='screen',
+        parameters=[params_file,
+                    {'use_sim_time': use_sim_time}])
+
+    # Controller Server
+    start_controller_server_cmd = Node(
+        package='nav2_controller',
+        executable='controller_server',
+        name='controller_server',
+        output='screen',
+        parameters=[params_file,
+                    {'use_sim_time': use_sim_time}])
+
+    # Planner Server
+    start_planner_server_cmd = Node(
+        package='nav2_planner',
+        executable='planner_server',
+        name='planner_server',
+        output='screen',
+        parameters=[params_file,
+                    {'use_sim_time': use_sim_time}])
+
+    # Recovery Server
+    start_recovery_server_cmd = Node(
+        package='nav2_recoveries',
+        executable='recoveries_server',
+        name='recoveries_server',
+        output='screen',
+        parameters=[params_file,
+                    {'use_sim_time': use_sim_time}])
+
+    # BT Navigator
+    start_bt_navigator_cmd = Node(
+        package='nav2_bt_navigator',
+        executable='bt_navigator',
+        name='bt_navigator',
+        output='screen',
+        parameters=[params_file,
+                    {'use_sim_time': use_sim_time}])
+
+    # Waypoint Follower
+    start_waypoint_follower_cmd = Node(
+        package='nav2_waypoint_follower',
+        executable='waypoint_follower',
+        name='waypoint_follower',
+        output='screen',
+        parameters=[params_file,
+                    {'use_sim_time': use_sim_time}])
+
+    # Lifecycle Manager
+    start_lifecycle_manager_cmd = Node(
+        package='nav2_lifecycle_manager',
+        executable='lifecycle_manager',
+        name='lifecycle_manager_navigation',
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time},
+                    {'autostart': autostart},
+                    {'node_names': ['map_server',
+                                    'amcl',
+                                    'controller_server',
+                                    'planner_server',
+                                    'recoveries_server',
+                                    'bt_navigator',
+                                    'waypoint_follower']}])
+
+    # RViz
+    start_rviz_cmd = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['-d', os.path.join(bringup_dir, 'rviz', 'nav2_default_view.rviz')],
+        parameters=[{'use_sim_time': use_sim_time}],
+        output='screen')
+
+    ld = LaunchDescription()
+
+    # 声明参数
+    ld.add_action(declare_namespace_cmd)
+    ld.add_action(declare_use_sim_time_cmd)
+    ld.add_action(declare_autostart_cmd)
+    ld.add_action(declare_params_file_cmd)
+    ld.add_action(declare_map_yaml_cmd)
+
+    # 启动节点
+    ld.add_action(start_map_server_cmd)
+    ld.add_action(start_amcl_cmd)
+    ld.add_action(start_controller_server_cmd)
+    ld.add_action(start_planner_server_cmd)
+    ld.add_action(start_recovery_server_cmd)
+    ld.add_action(start_bt_navigator_cmd)
+    ld.add_action(start_waypoint_follower_cmd)
+    ld.add_action(start_lifecycle_manager_cmd)
+    ld.add_action(start_rviz_cmd)
+
+    return ld
+</code></pre>
+
+            <h3>7.3 启动仿真测试</h3>
+            <pre><code class="language-bash"># 1. 启动Gazebo仿真环境
+ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+
+# 2. 启动Nav2导航栈
+ros2 launch nav2_bringup bringup_launch.py use_sim_time:=True
+
+# 3. 发送导航目标（通过命令行）
+ros2 action send_goal /navigate_to_pose nav2_msgs/action/NavigateToPose \
+  "{pose: {header: {frame_id: 'map'}, \
+           pose: {position: {x: 2.0, y: 2.0, z: 0.0}, \
+                  orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}}"
+
+# 4. 发送多个路点
+ros2 action send_goal /follow_waypoints nav2_msgs/action/FollowWaypoints \
+  "{poses: [{header: {frame_id: 'map'}, \
+             pose: {position: {x: 1.0, y: 1.0, z: 0.0}}}, \
+            {header: {frame_id: 'map'}, \
+             pose: {position: {x: 2.0, y: 2.0, z: 0.0}}}]}"
+
+# 5. 查看Nav2节点状态
+ros2 node list
+ros2 topic list
+ros2 service list
+</code></pre>
+
+            <h2>8. 代价地图配置</h2>
+            <h3>8.1 全局代价地图</h3>
+            <pre><code class="language-yaml">global_costmap:
+  global_costmap:
+    ros__parameters:
+      update_frequency: 1.0
+      publish_frequency: 1.0
+      global_frame: map
+      robot_base_frame: base_link
+      use_sim_time: True
+      robot_radius: 0.22
+      resolution: 0.05
+      track_unknown_space: true
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          raytrace_max_range: 3.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.5
+          obstacle_min_range: 0.0
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 3.0
+        inflation_radius: 0.55
+
+      always_send_full_costmap: True
+</code></pre>
+
+            <h3>8.2 局部代价地图</h3>
+            <pre><code class="language-yaml">local_costmap:
+  local_costmap:
+    ros__parameters:
+      update_frequency: 5.0
+      publish_frequency: 2.0
+      global_frame: odom
+      robot_base_frame: base_link
+      use_sim_time: True
+      rolling_window: true
+      width: 3
+      height: 3
+      resolution: 0.05
+      robot_radius: 0.22
+      plugins: ["voxel_layer", "inflation_layer"]
+
+      voxel_layer:
+        plugin: "nav2_costmap_2d::VoxelLayer"
+        enabled: True
+        publish_voxel_map: True
+        origin_z: 0.0
+        z_resolution: 0.05
+        z_voxels: 16
+        max_obstacle_height: 2.0
+        mark_threshold: 0
+        observation_sources: scan
+        scan:
+          topic: /scan
+          max_obstacle_height: 2.0
+          clearing: True
+          marking: True
+          data_type: "LaserScan"
+          raytrace_max_range: 3.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.5
+          obstacle_min_range: 0.0
+
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 3.0
+        inflation_radius: 0.55
+
+      always_send_full_costmap: True
+</code></pre>
+
+            <h2>9. 性能调优建议</h2>
+            <h3>9.1 规划器性能优化</h3>
+            <ul>
+                <li><strong>降低地图分辨率</strong>: 在保证精度的前提下，使用0.05-0.1m的分辨率</li>
+                <li><strong>限制规划时间</strong>: 设置合理的max_planning_time，避免规划阻塞</li>
+                <li><strong>使用加权A*</strong>: 通过调整启发式权重加快搜索速度</li>
+                <li><strong>启用路径缓存</strong>: 对于静态环境，可以缓存已规划路径</li>
+            </ul>
+
+            <h3>9.2 控制器性能优化</h3>
+            <ul>
+                <li><strong>调整控制频率</strong>: 根据机器人动力学性能设置合适的控制频率（通常20-50Hz）</li>
+                <li><strong>速度采样优化</strong>: 减少vx_samples和vtheta_samples降低计算量</li>
+                <li><strong>轨迹仿真时间</strong>: sim_time不宜过长，1.0-2.0秒为宜</li>
+                <li><strong>critic权重调整</strong>: 根据实际场景调整各个critic的权重</li>
+            </ul>
+
+            <h3>9.3 代价地图优化</h3>
+            <ul>
+                <li><strong>更新频率</strong>: 全局代价地图1Hz，局部代价地图5-10Hz</li>
+                <li><strong>地图尺寸</strong>: 局部代价地图不宜过大，3x3米到5x5米</li>
+                <li><strong>传感器融合</strong>: 合理配置不同传感器的观测距离和权重</li>
+                <li><strong>膨胀半径</strong>: 根据机器人尺寸设置合适的膨胀半径</li>
+            </ul>
+
+            <h2>10. 总结与展望</h2>
+            <p>
+                本文深入介绍了ROS2 Navigation Stack（Nav2）的架构设计、核心组件以及实践应用。通过学习本文，你应该掌握了：
+            </p>
+            <ul>
+                <li>✅ Nav2的整体架构和各个模块的功能</li>
+                <li>✅ 行为树在Nav2中的应用和自定义节点开发</li>
+                <li>✅ 全局规划器和局部控制器的工作原理</li>
+                <li>✅ 如何开发自定义的规划器和控制器插件</li>
+                <li>✅ Gazebo仿真环境的搭建和测试</li>
+                <li>✅ 代价地图的配置和性能调优技巧</li>
+            </ul>
+
+            <p>
+                Nav2作为ROS2生态中最重要的导航框架，具有高度的灵活性和可扩展性。相比ROS1的导航栈，Nav2在以下方面有显著提升：
+            </p>
+            <ul>
+                <li><strong>架构升级</strong>: 基于行为树的任务管理，支持更复杂的导航逻辑</li>
+                <li><strong>插件系统</strong>: 完善的插件机制，方便算法替换和扩展</li>
+                <li><strong>性能优化</strong>: 利用ROS2的DDS通信，提供更好的实时性</li>
+                <li><strong>生命周期管理</strong>: 统一的节点生命周期管理，更可靠的启停控制</li>
+            </ul>
+
+            <p>
+                未来的研究方向包括：
+            </p>
+            <ul>
+                <li>深度学习与传统算法的融合（如学习型规划器）</li>
+                <li>多机器人协同导航</li>
+                <li>动态环境下的社交感知导航</li>
+                <li>3D导航和多层地图支持</li>
+                <li>语义导航（基于物体和场景理解的导航）</li>
+            </ul>
+
+            <h2>11. 参考资料</h2>
+            <ul>
+                <li>Nav2 Official Documentation: <a href="https://navigation.ros.org/" target="_blank">https://navigation.ros.org/</a></li>
+                <li>ROS2 Design Patterns and Best Practices</li>
+                <li>BehaviorTree.CPP Documentation: <a href="https://www.behaviortree.dev/" target="_blank">https://www.behaviortree.dev/</a></li>
+                <li>Costmap 2D Package Documentation</li>
+                <li>Dynamic Window Approach (DWB) Controller</li>
+                <li>Smac Planner: A Hybrid A* Planner for Nav2</li>
+            </ul>
+        </section>
+
+        <div class="post-footer">
+            <div class="post-tags">
+                <span class="tag">ROS2</span>
+                <span class="tag">导航</span>
+                <span class="tag">框架</span>
+                <span class="tag">Nav2</span>
+                <span class="tag">自主导航</span>
+            </div>
+            <div class="post-nav">
+                <a href="../index.html" class="btn-back">← 返回首页</a>
+            </div>
+        </div>
+    </article>
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="back-to-top">↑</button>
+
+    <!-- JavaScript -->
+    <script src="../js/main.js"></script>
+</body>
+</html>
